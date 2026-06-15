@@ -1,0 +1,510 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- HERO SECTION -->
+<section class="hero">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1>Gestiona tu negocio de forma <span>profesional</span> y eficiente</h1>
+                <p class="lead">Plataforma integral para la gestión de ventas, productos, usuarios y transacciones.
+                    Diseñada para vendedores y clientes.</p>
+                <div class="d-flex gap-3">
+                    <button class="btn btn-primary-sobre" data-bs-toggle="modal" data-bs-target="#registroModal">
+                        <i class="bi bi-rocket"></i> Comenzar ahora
+                    </button>
+                    <button class="btn btn-outline-sobre" data-bs-toggle="modal" data-bs-target="#loginModal">
+                        <i class="bi bi-play-circle"></i> Ya tengo cuenta
+                    </button>
+                </div>
+            </div>
+            <div class="col-lg-6 d-none d-lg-block">
+                <div class="text-center">
+                    <img src="" alt="Dashboard preview" class="img-fluid rounded-3 shadow-sm" style="max-width: 100%;">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CARACTERÍSTICAS -->
+<section id="caracteristicas" class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold mb-3">Todo lo que necesitas en un solo lugar</h2>
+            <p class="text-secondary">Herramientas diseñadas para optimizar tu negocio</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="bi bi-box-seam"></i></div>
+                    <h4>Gestión de productos</h4>
+                    <p>Administra tu inventario, precios y stock de manera sencilla. Control total sobre tu catálogo.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="bi bi-people"></i></div>
+                    <h4>Gestión de usuarios</h4>
+                    <p>Administra vendedores y clientes, asigna roles y controla el acceso al sistema.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="bi bi-receipt"></i></div>
+                    <h4>Registro de transacciones</h4>
+                    <p>Historial completo de ventas, pedidos y pagos con reportes detallados.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="bi bi-graph-up"></i></div>
+                    <h4>Dashboard analítico</h4>
+                    <p>Visualiza métricas clave, tendencias de venta y rendimiento de tu negocio.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="bi bi-shield-check"></i></div>
+                    <h4>Seguridad avanzada</h4>
+                    <p>Protección de datos, autenticación segura y control de accesos por rol.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="bi bi-cloud-upload"></i></div>
+                    <h4>Sincronización en la nube</h4>
+                    <p>Tus datos siempre disponibles desde cualquier lugar y dispositivo.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- STATS -->
+<section class="stats-section">
+    <div class="container">
+        <div class="row text-center g-4">
+            <div class="col-md-3 col-6">
+                <div class="stat-number">500+</div>
+                <div class="small text-secondary">Empresas confían</div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-number">10K+</div>
+                <div class="small text-secondary">Usuarios activos</div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-number">50K+</div>
+                <div class="small text-secondary">Transacciones/mes</div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-number">99.9%</div>
+                <div class="small text-secondary">Tiempo activo</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CÓMO FUNCIONA -->
+<section id="como-funciona" class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold mb-3">¿Cómo funciona?</h2>
+            <p class="text-secondary">Tres pasos simples para comenzar</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4 text-center">
+                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+                    style="width: 70px; height: 70px;">
+                    <i class="bi bi-person-plus fs-1 text-orange"></i>
+                </div>
+                <h5>1. Regístrate</h5>
+                <p class="text-secondary">Crea tu cuenta como vendedor o cliente en segundos</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+                    style="width: 70px; height: 70px;">
+                    <i class="bi bi-box-seam fs-1 text-orange"></i>
+                </div>
+                <h5>2. Configura tu espacio</h5>
+                <p class="text-secondary">Vendedores: carga productos. Clientes: explora el catálogo</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+                    style="width: 70px; height: 70px;">
+                    <i class="bi bi-graph-up fs-1 text-orange"></i>
+                </div>
+                <h5>3. Empieza a vender</h5>
+                <p class="text-secondary">Gestiona transacciones, monitorea ventas y haz crecer tu negocio</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- TESTIMONIAL -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="testimonial-card">
+                    <div class="mb-3 text-orange">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                    </div>
+                    <p class="testimonial-text">"Desde que implementamos GestiónCore, la eficiencia de nuestro negocio
+                        ha mejorado notablemente. El dashboard es intuitivo y las herramientas de análisis nos han
+                        permitido tomar mejores decisiones."</p>
+                    <div class="testimonial-author">Carlos López</div>
+                    <div class="testimonial-role">Vendedor · ElectroStore</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer id="contacto" class="footer">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <h5>GESTIÓN<span class="text-orange">CORE</span></h5>
+                <p class="small">Plataforma profesional para la gestión integral de tu negocio. Soluciones para
+                    vendedores y clientes.</p>
+                <div class="d-flex gap-3 mt-3">
+                    <a href="#"><i class="bi bi-facebook fs-5"></i></a>
+                    <a href="#"><i class="bi bi-twitter fs-5"></i></a>
+                    <a href="#"><i class="bi bi-linkedin fs-5"></i></a>
+                    <a href="#"><i class="bi bi-instagram fs-5"></i></a>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <h5>PRODUCTO</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="#">Características</a></li>
+                    <li class="mb-2"><a href="#">Precios</a></li>
+                    <li class="mb-2"><a href="#">Testimonios</a></li>
+                    <li class="mb-2"><a href="#">FAQ</a></li>
+                </ul>
+            </div>
+            <div class="col-md-2">
+                <h5>COMPAÑÍA</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="#">Sobre nosotros</a></li>
+                    <li class="mb-2"><a href="#">Blog</a></li>
+                    <li class="mb-2"><a href="#">Prensa</a></li>
+                    <li class="mb-2"><a href="#">Carreras</a></li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h5>CONTACTO</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="bi bi-envelope me-2"></i> info@gestioncore.com</li>
+                    <li class="mb-2"><i class="bi bi-telephone me-2"></i> +34 900 123 456</li>
+                    <li class="mb-2"><i class="bi bi-geo-alt me-2"></i> Madrid, España</li>
+                </ul>
+            </div>
+        </div>
+        <hr class="my-4" style="border-color: #334155;">
+        <div class="text-center small">
+            &copy; 2024 GestiónCore. Todos los derechos reservados.
+        </div>
+    </div>
+</footer>
+
+<!-- MODAL INICIAR SESIÓN -->
+<div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-box-arrow-in-right me-2 text-orange"></i> Iniciar sesión
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="loginForm">
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="email" placeholder="usuario@ejemplo.com"
+                            required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Contraseña</label>
+                        <input type="password" class="form-control" name="password" placeholder="••••••••" required>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary-sobre">Ingresar</button>
+                    </div>
+                    <div class="text-center mt-3">
+                        <small class="text-secondary">¿No tienes cuenta? <a href="#" data-bs-dismiss="modal"
+                                data-bs-toggle="modal" data-bs-target="#registroModal"
+                                class="text-orange text-decoration-none">Regístrate aquí</a></small>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+
+        e.preventDefault();
+
+        const datos = {
+            email: document.querySelector('#loginForm input[name="email"]').value,
+            password: document.querySelector('#loginForm input[name="password"]').value
+        };
+
+        try {
+
+            const response = await fetch('/auth/login', {
+
+                method: 'POST',
+
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+
+                body: JSON.stringify(datos)
+
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+
+                alert(
+                    'Bienvenido ' +
+                    data.usuario.nombre +
+                    ' (' +
+                    data.rol +
+                    ')'
+                );
+
+                window.location.href = data.dashboard;
+
+            } else {
+
+                alert(data.message);
+
+            }
+
+        } catch (error) {
+
+            console.error(error);
+            alert('Error al iniciar sesión');
+
+        }
+
+    });
+</script>
+
+<!-- MODAL REGISTRO -->
+<div class="modal fade" id="registroModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-person-plus me-2 text-orange"></i>
+                    Crear cuenta nueva
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <form id="registroForm" method="POST">
+
+                    <div class="mb-3">
+                        <label class="form-label">Nombre completo</label>
+                        <input type="text" class="form-control" id="regNombre" name="nombre" placeholder="Juan Pérez"
+                            required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Correo electrónico</label>
+                        <input type="email" class="form-control" id="regEmail" name="email"
+                            placeholder="usuario@ejemplo.com" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Teléfono</label>
+                        <input type="tel" class="form-control" id="regTelefono" name="telefono" placeholder="76543210"
+                            required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Rol</label>
+
+                        <select class="form-select" id="regRol" name="rol" required>
+
+                            <option value="" selected disabled>
+                                Seleccione un rol
+                            </option>
+
+                            <option value="cliente">
+                                Cliente
+                            </option>
+
+                            <option value="vendedor">
+                                Vendedor
+                            </option>
+                            <option value="administrador">
+                                Administrador
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Contraseña</label>
+                        <input type="password" class="form-control" id="regPassword" name="password"
+                            placeholder="Mínimo 6 caracteres" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">
+                            Confirmar contraseña
+                        </label>
+
+                        <input type="password" class="form-control" id="regConfirmPassword" name="confirm_password"
+                            required>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary-sobre">
+                            Registrarse
+                        </button>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <small class="text-secondary">
+                            ¿Ya tienes cuenta?
+
+                            <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#loginModal"
+                                class="text-orange text-decoration-none">
+
+                                Inicia sesión
+
+                            </a>
+                        </small>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.getElementById('registroForm').addEventListener('submit', async (e) => {
+
+        e.preventDefault();
+
+        const password = document.getElementById('regPassword').value;
+        const confirmPassword = document.getElementById('regConfirmPassword').value;
+
+        if (password !== confirmPassword) {
+            alert('Las contraseñas no coinciden');
+            return;
+        }
+
+        const datos = {
+            nombre: document.getElementById('regNombre').value,
+            email: document.getElementById('regEmail').value,
+            telefono: document.getElementById('regTelefono').value,
+            rol: document.getElementById('regRol').value,
+            password: password
+        };
+
+        try {
+
+            const response = await fetch('/auth/registros', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(datos)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+
+                alert(data.message);
+
+                bootstrap.Modal.getInstance(
+                    document.getElementById('registroModal')
+                ).hide();
+
+                document.getElementById('registroForm').reset();
+
+                new bootstrap.Modal(
+                    document.getElementById('loginModal')
+                ).show();
+
+            } else {
+
+                alert(data.message);
+
+            }
+
+        } catch (error) {
+
+            console.error(error);
+            alert('Error al registrar usuario');
+
+        }
+
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const pass = document.getElementById('regPassword').value;
+    const confirm = document.getElementById('regConfirmPassword').value;
+
+    if (pass !== confirm) {
+        alert("Las contraseñas no coinciden");
+        return;
+    }
+    // Smooth scroll para enlaces internos
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                e.preventDefault();
+                target.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Abrir Login desde Registro
+        const registroModal = document.getElementById('registroModal');
+        const loginModal = document.getElementById('loginModal');
+
+        if (registroModal && loginModal) {
+
+            registroModal.addEventListener('hidden.bs.modal', function () {
+
+                if (document.body.classList.contains('abrir-login')) {
+                    document.body.classList.remove('abrir-login');
+
+                    const modalLogin = new bootstrap.Modal(loginModal);
+                    modalLogin.show();
+                }
+
+            });
+
+        }
+
+    });  
+</script>
+
+{% endblock %}
