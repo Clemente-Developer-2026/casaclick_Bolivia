@@ -58,6 +58,27 @@ class Auditoria(db.Model):
         self.hora_actividad = ahora.time()
         import getpass
         self.user_sistema = getpass.getuser()
+    # ====== AGREGAR ESTE MÉTODO ======
+    def to_dict(self):
+        """Convertir objeto Auditoria a diccionario"""
+        return {
+            "id_auditoria": self.id_auditoria,
+            "id_usuario": self.id_usuario,
+            "nombre_usuario": self.nombre_usuario,
+            "email_usuario": self.email_usuario,
+            "tabla_afectada": self.tabla_afectada,
+            "registro_id": self.registro_id,
+            "accion": self.accion,
+            "datos_anteriores": self.datos_anteriores,
+            "datos_nuevos": self.datos_nuevos,
+            "fecha_actividad": self.fecha_actividad.strftime('%Y-%m-%d') if self.fecha_actividad else None,
+            "hora_actividad": self.hora_actividad.strftime('%H:%M:%S') if self.hora_actividad else None,
+            "user_sistema": self.user_sistema,
+            "ip_usuario": self.ip_usuario,
+            "endpoint": self.endpoint
+        }
+    # =================================
+
 
 
 

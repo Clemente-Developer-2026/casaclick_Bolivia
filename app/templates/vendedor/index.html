@@ -1,1 +1,800 @@
-<h1>Bienvenido doctor</h1>
+{% extends 'base.html' %}
+{% block title %} Vendedor - CasaClick {% endblock %}
+
+{% block content %}
+
+<div class="container-fluid p-0 d-flex flex-column min-vh-100">
+    <div class="row g-0 flex-grow-1">
+        <!-- SIDEBAR VENDEDOR -->
+        <div class="col-auto sidebar" id="sidebarMenu">
+            <div class="d-flex flex-column h-100 p-3 pt-4">
+                <div class="mb-4 pb-2">
+                    <div class="fw-bold fs-5" style="color:#1a2c3e;">
+                        <i class="bi bi-shop me-2" style="color:#e25c0c;"></i> 
+                        <span style="letter-spacing:-0.2px;">Mi<span class="text-orange-sobre">Negocio</span></span>
+                    </div>
+                    <div class="small text-secondary mt-1">Panel · Vendedor</div>
+                </div>
+                <nav class="nav flex-column">
+                    <a href="{{ url_for('vendedor.index') }}" class="nav-link-custom active"><i class="bi bi-grid-3x3-gap-fill"></i> Mi catálogo</a>
+                    <a href="{{ url_for('vendedor.publicar') }}" class="nav-link-custom"><i class="bi bi-plus-circle"></i> Publicar propiedad</a>
+                    <a href="#" class="nav-link-custom"><i class="bi bi-bar-chart-line"></i> Mis ventas</a>
+                    <a href="#" class="nav-link-custom"><i class="bi bi-people"></i> Mis clientes</a>
+                    <a href="#" class="nav-link-custom"><i class="bi bi-gear"></i> Configuración</a>
+                </nav>
+                <hr class="my-3">
+                <div class="small text-secondary mt-auto">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-person-circle fs-5"></i>
+                        <div>
+                            <div class="fw-semibold">{{ current_user.nombre }}</div>
+                            <div>{{ current_user.rol|capitalize }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="col bg-light" style="background-color: #eef2f5 !important;">
+            <!-- TOP BAR -->
+            <div class="top-bar d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-outline-sobre d-md-none" id="toggleSidebarBtn"><i class="bi bi-list"></i></button>
+                    <h5 class="mb-0 fw-semibold" style="font-size: 1rem;">Mi catálogo / <span class="text-orange-sobre">Productos a la venta</span></h5>
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                    <span class="small text-secondary"><i class="bi bi-calendar3"></i> {{ datetime.now().strftime('%d %b %Y') }}</span>
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-sobre btn-sm">
+                        <i class="bi bi-box-arrow-right"></i> Salir
+                    </a>
+                </div>
+            </div>
+
+            <div class="p-3 p-md-4">
+                <!-- MÉTRICAS DEL VENDEDOR -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3 col-6">
+                        <div class="metric-card">
+                            <div class="metric-title">Mis productos</div>
+                            <div class="metric-value" id="totalProductos">{{ total_propiedades }}</div>
+                            <div class="small text-success"><i class="bi bi-arrow-up-short"></i> activos</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="metric-card">
+                            <div class="metric-title">Disponibles</div>
+                            <div class="metric-value" id="propDisponibles">{{ disponibles }}</div>
+                            <div class="small text-secondary">en venta</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="metric-card" style="border-left-color: #dc3545;">
+                            <div class="metric-title">Vendidas</div>
+                            <div class="metric-value text-danger" id="propVendidas">{{ vendidas }}</div>
+                            <div class="small text-secondary">propiedades</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="metric-card" style="border-left-color: #ffc107;">
+                            <div class="metric-title">Alquiladas</div>
+                            <div class="metric-value text-warning" id="propAlquiladas">{{ alquiladas }}</div>
+                            <div class="small text-secondary">propiedades</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BARRA DE FILTROS -->
+                <div class="filter-bar mb-4">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-5">
+                            <label class="form-label mb-1">Buscar producto</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0" style="border-color:#e2e8f0;"><i class="bi bi-search text-secondary"></i></span>
+                                <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Nombre, ID o categoría...">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">Tipo</label>
+                            <select class="form-select" id="typeFilter">
+                                <option value="all">Todos</option>
+                                {% set tipos = propiedades|map(attribute='tipo')|unique|list %}
+                                {% for tipo in tipos %}
+                                    <option value="{{ tipo }}">{{ tipo|capitalize }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label mb-1">Estado</label>
+                            <select class="form-select" id="estadoFilter">
+                                <option value="all">Todos</option>
+                                <option value="disponible">Disponible</option>
+                                <option value="vendido">Vendido</option>
+                                <option value="alquilado">Alquilado</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-outline-sobre w-100" id="resetFiltersBtn">
+                                <i class="bi bi-arrow-repeat"></i> Resetear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTADOR Y BOTÓN NUEVO PRODUCTO -->
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <span class="small text-secondary"><i class="bi bi-box-seam"></i> <span id="productCount">{{ propiedades|length }}</span> propiedades encontradas</span>
+                    <a href="{{ url_for('vendedor.publicar') }}" class="btn btn-primary-sobre btn-sm">
+                        <i class="bi bi-plus-circle"></i> Nueva propiedad
+                    </a>
+                </div>
+
+                <!-- GRID DE PROPIEDADES CON CARRUSEL -->
+                <div class="row g-4" id="productsGrid">
+                    {% for propiedad in propiedades %}
+                    <div class="col-md-6 col-lg-4 col-xl-3" data-propiedad-id="{{ propiedad.id_propiedad }}">
+                        <div class="product-card">
+                            <!-- CARRUSEL DE IMÁGENES -->
+                            <div class="product-img">
+                                {% if propiedad.imagenes and propiedad.imagenes|length > 0 %}
+                                    <div id="carousel-{{ propiedad.id_propiedad }}" class="carousel slide" data-bs-ride="carousel" data-bs-interval="false">
+                                        <div class="carousel-inner">
+                                            {% for imagen in propiedad.imagenes %}
+                                                <div class="carousel-item {% if loop.first %}active{% endif %}">
+                                                    <img src="{{ url_for('vendedor.serve_upload', filename=imagen.imagen) }}" 
+                                                         alt="{{ propiedad.titulo }}" 
+                                                         style="width: 100%; height: 200px; object-fit: cover;">
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                        {% if propiedad.imagenes|length > 1 %}
+                                            <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ propiedad.id_propiedad }}" data-bs-slide="prev">
+                                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                                <span class="visually-hidden">Anterior</span>
+                                            </button>
+                                            <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ propiedad.id_propiedad }}" data-bs-slide="next">
+                                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                                <span class="visually-hidden">Siguiente</span>
+                                            </button>
+                                            <!-- Indicadores -->
+                                            <div class="carousel-indicators" style="bottom: 5px;">
+                                                {% for imagen in propiedad.imagenes %}
+                                                    <button type="button" data-bs-target="#carousel-{{ propiedad.id_propiedad }}" 
+                                                            data-bs-slide-to="{{ loop.index0 }}" 
+                                                            class="{% if loop.first %}active{% endif %}" 
+                                                            style="width: 8px; height: 8px; border-radius: 50%; margin: 0 3px;"></button>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <div style="display: flex; align-items: center; justify-content: center; height: 200px; background: #f8f9fa;">
+                                        <i class="bi bi-house fs-1 text-secondary" style="font-size: 3rem;"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="product-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <div class="product-title">{{ propiedad.titulo|truncate(25) }}</div>
+                                        <div class="product-id">PR-{{ propiedad.id_propiedad }}</div>
+                                    </div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-sobre" data-bs-toggle="dropdown" style="padding:0.2rem 0.5rem;">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li><a class="dropdown-item" href="{{ url_for('vendedor.ver_propiedad', id_propiedad=propiedad.id_propiedad) }}"><i class="bi bi-eye"></i> Ver</a></li>
+                                            <li><a class="dropdown-item" href="{{ url_for('vendedor.editar_propiedad', id_propiedad=propiedad.id_propiedad) }}"><i class="bi bi-pencil"></i> Editar</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="abrirModalImagenes({{ propiedad.id_propiedad }}, '{{ propiedad.titulo }}')"><i class="bi bi-images"></i> Gestionar imágenes</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item text-danger" href="#" onclick="eliminarPropiedad({{ propiedad.id_propiedad }}, '{{ propiedad.titulo }}')"><i class="bi bi-trash3"></i> Eliminar</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="product-price">${{ "%.2f"|format(propiedad.precio) }}</div>
+                                <div class="mt-2">
+                                    <span class="badge-flat 
+                                        {% if propiedad.estado == 'disponible' %}badge-success-flat
+                                        {% elif propiedad.estado == 'vendido' %}badge-danger-flat
+                                        {% else %}badge-warning-flat{% endif %}">
+                                        <i class="bi 
+                                            {% if propiedad.estado == 'disponible' %}bi-check-circle-fill
+                                            {% elif propiedad.estado == 'vendido' %}bi-x-circle-fill
+                                            {% else %}bi-clock-fill{% endif %} me-1"></i>
+                                        {{ propiedad.estado|capitalize }}
+                                    </span>
+                                </div>
+                                <div class="mt-2"><small class="text-secondary"><i class="bi bi-tag"></i> {{ propiedad.tipo|capitalize }}</small></div>
+                                <div class="mt-2"><small class="text-secondary"><i class="bi bi-rulers"></i> {{ propiedad.superficie }} m²</small></div>
+                                <div class="mt-2"><small class="text-muted">{{ propiedad.descripcion|truncate(60) }}</small></div>
+                                <div class="mt-2 pt-2 border-top">
+                                    <small class="text-secondary"><i class="bi bi-calendar3"></i> {{ propiedad.fecha_publicacion.strftime('%d/%m/%Y') }}</small>
+                                    <small class="text-secondary ms-2"><i class="bi bi-images"></i> {{ propiedad.imagenes|length }} img</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-12 text-center py-5">
+                        <i class="bi bi-inbox" style="font-size:3rem; color:#cbd5e1;"></i>
+                        <p class="mt-2 text-secondary">No tienes propiedades registradas</p>
+                        <a href="{{ url_for('vendedor.publicar') }}" class="btn btn-primary-sobre btn-sm mt-2">
+                            <i class="bi bi-plus-circle"></i> Publicar mi primera propiedad
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PARA GESTIONAR IMÁGENES -->
+<div class="modal fade" id="modalGestionImagenes" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-images me-2 text-orange-sobre"></i> 
+                    Gestionar imágenes de <span id="modalTituloPropiedad"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="modalIdPropiedad">
+                
+                <!-- Imágenes actuales -->
+                <div class="mb-4">
+                    <h6 class="fw-semibold">Imágenes actuales</h6>
+                    <div class="row g-2" id="imagenesActuales">
+                        <!-- Cargado por JavaScript -->
+                    </div>
+                </div>
+
+                <hr>
+
+                <!-- Subir nuevas imágenes -->
+                <div>
+                    <h6 class="fw-semibold">Agregar nuevas imágenes</h6>
+                    <div class="drop-zone" id="dropZoneModal">
+                        <div class="drop-zone-content">
+                            <i class="bi bi-cloud-upload" style="font-size: 3rem; color: #cbd5e1;"></i>
+                            <p class="mt-2 mb-1">Arrastra y suelta tus imágenes aquí</p>
+                            <small class="text-muted">o haz clic para seleccionar archivos</small>
+                            <input type="file" class="form-control" id="nuevasImagenesModal" 
+                                   accept="image/*" multiple style="display: none;">
+                            <button type="button" class="btn btn-outline-sobre btn-sm mt-2" onclick="document.getElementById('nuevasImagenesModal').click()">
+                                <i class="bi bi-folder2-open"></i> Seleccionar imágenes
+                            </button>
+                        </div>
+                    </div>
+                    <div id="previewNuevasImagenesModal" class="row g-2 mt-2"></div>
+                    <button class="btn btn-primary-sobre btn-sm mt-3" id="btnSubirImagenesModal">
+                        <i class="bi bi-upload"></i> Subir imágenes
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-sobre" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Datos de propiedades desde el backend
+    const propiedades = {{ propiedades_json|tojson|safe }};
+    
+    // ============================================
+    // FUNCIÓN PARA ABRIR MODAL DE IMÁGENES
+    // ============================================
+    function abrirModalImagenes(idPropiedad, titulo) {
+        document.getElementById('modalIdPropiedad').value = idPropiedad;
+        document.getElementById('modalTituloPropiedad').textContent = titulo;
+        
+        // Cargar imágenes actuales
+        cargarImagenesPropiedad(idPropiedad);
+        
+        // Limpiar previsualización de nuevas imágenes
+        document.getElementById('previewNuevasImagenesModal').innerHTML = '';
+        document.getElementById('nuevasImagenesModal').value = '';
+        
+        new bootstrap.Modal(document.getElementById('modalGestionImagenes')).show();
+    }
+
+    // ============================================
+    // CARGAR IMÁGENES DE LA PROPIEDAD
+    // ============================================
+    function cargarImagenesPropiedad(idPropiedad) {
+        const container = document.getElementById('imagenesActuales');
+        container.innerHTML = '<div class="text-center p-3"><div class="spinner-border text-orange-sobre" role="status"><span class="visually-hidden">Cargando...</span></div></div>';
+        
+        fetch(`/vendedor/api/propiedad/${idPropiedad}/imagenes`)
+            .then(response => response.json())
+            .then(data => {
+                container.innerHTML = '';
+                if (data.success && data.data.length > 0) {
+                    data.data.forEach(imagen => {
+                        const col = document.createElement('div');
+                        col.className = 'col-md-3 col-6';
+                        col.id = `img-modal-${imagen.id_imagen}`;
+                        col.innerHTML = `
+                            <div class="position-relative">
+                                <img src="${imagen.url}" 
+                                     alt="Imagen" 
+                                     style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px; border: 2px solid #e9ecef;">
+                                <button type="button" 
+                                        class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1" 
+                                        onclick="eliminarImagenModal(${imagen.id_imagen}, ${idPropiedad})" 
+                                        style="border-radius: 50%; width: 28px; height: 28px; padding: 0; font-size: 0.7rem;">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            </div>
+                        `;
+                        container.appendChild(col);
+                    });
+                } else {
+                    container.innerHTML = '<div class="col-12 text-center py-3"><p class="text-secondary">No hay imágenes cargadas</p></div>';
+                }
+            })
+            .catch(error => {
+                container.innerHTML = '<div class="col-12 text-center py-3"><p class="text-danger">Error al cargar imágenes</p></div>';
+                console.error('Error:', error);
+            });
+    }
+
+    // ============================================
+    // ELIMINAR IMAGEN DESDE EL MODAL
+    // ============================================
+    function eliminarImagenModal(idImagen, idPropiedad) {
+        if (!confirm('¿Estás seguro de eliminar esta imagen?')) return;
+        
+        fetch(`/vendedor/imagen/${idImagen}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() if csrf_token else "" }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById(`img-modal-${idImagen}`).remove();
+                alert('✅ Imagen eliminada correctamente');
+                // Recargar la página principal para actualizar el carrusel
+                setTimeout(() => location.reload(), 500);
+            } else {
+                alert('❌ Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('❌ Error al eliminar la imagen');
+            console.error(error);
+        });
+    }
+
+    // ============================================
+    // DROP ZONE EN EL MODAL
+    // ============================================
+    const dropZoneModal = document.getElementById('dropZoneModal');
+    const fileInputModal = document.getElementById('nuevasImagenesModal');
+    const previewModal = document.getElementById('previewNuevasImagenesModal');
+    let archivosSeleccionados = [];
+
+    dropZoneModal.addEventListener('click', () => fileInputModal.click());
+
+    dropZoneModal.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZoneModal.style.borderColor = '#e25c0c';
+        dropZoneModal.style.background = '#e25c0c10';
+    });
+
+    dropZoneModal.addEventListener('dragleave', () => {
+        dropZoneModal.style.borderColor = '#cbd5e1';
+        dropZoneModal.style.background = 'transparent';
+    });
+
+    dropZoneModal.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZoneModal.style.borderColor = '#cbd5e1';
+        dropZoneModal.style.background = 'transparent';
+        if (e.dataTransfer.files.length > 0) {
+            fileInputModal.files = e.dataTransfer.files;
+            previsualizarNuevasImagenesModal(e.dataTransfer.files);
+        }
+    });
+
+    fileInputModal.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            previsualizarNuevasImagenesModal(this.files);
+        }
+    });
+
+    function previsualizarNuevasImagenesModal(files) {
+        previewModal.innerHTML = '';
+        archivosSeleccionados = [];
+
+        Array.from(files).forEach((file, index) => {
+            if (!file.type.startsWith('image/')) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const col = document.createElement('div');
+                col.className = 'col-md-3 col-6';
+                col.innerHTML = `
+                    <div class="position-relative">
+                        <img src="${e.target.result}" alt="Nueva imagen ${index + 1}" 
+                             style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; border: 2px solid #28a745;">
+                        <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1" 
+                                onclick="eliminarNuevaImagenModal(${index})" 
+                                style="border-radius: 50%; width: 28px; height: 28px; padding: 0; font-size: 0.7rem;">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
+                `;
+                previewModal.appendChild(col);
+                archivosSeleccionados.push(file);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function eliminarNuevaImagenModal(index) {
+        const dt = new DataTransfer();
+        const files = fileInputModal.files;
+        for (let i = 0; i < files.length; i++) {
+            if (i !== index) {
+                dt.items.add(files[i]);
+            }
+        }
+        fileInputModal.files = dt.files;
+        previsualizarNuevasImagenesModal(fileInputModal.files);
+    }
+
+    // ============================================
+    // SUBIR NUEVAS IMÁGENES DESDE EL MODAL
+    // ============================================
+    document.getElementById('btnSubirImagenesModal').addEventListener('click', function() {
+        const idPropiedad = document.getElementById('modalIdPropiedad').value;
+        const files = document.getElementById('nuevasImagenesModal').files;
+        
+        if (files.length === 0) {
+            alert('Por favor selecciona al menos una imagen');
+            return;
+        }
+
+        const formData = new FormData();
+        for (let i = 0; i < files.length; i++) {
+            formData.append('imagenes', files[i]);
+        }
+
+        this.disabled = true;
+        this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Subiendo...';
+
+        fetch(`/vendedor/propiedad/${idPropiedad}/imagenes`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`✅ ${data.imagenes.length} imagen(es) subida(s) correctamente`);
+                // Recargar imágenes
+                cargarImagenesPropiedad(idPropiedad);
+                // Limpiar previsualización
+                previewModal.innerHTML = '';
+                fileInputModal.value = '';
+                // Recargar la página para actualizar el carrusel
+                setTimeout(() => location.reload(), 500);
+            } else {
+                alert('❌ Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('❌ Error al subir imágenes');
+            console.error(error);
+        })
+        .finally(() => {
+            this.disabled = false;
+            this.innerHTML = '<i class="bi bi-upload"></i> Subir imágenes';
+        });
+    });
+
+    // ============================================
+    // ELIMINAR PROPIEDAD
+    // ============================================
+    function eliminarPropiedad(id, titulo) {
+        if (confirm(`¿Estás seguro de eliminar la propiedad "${titulo}"? Esta acción eliminará todas sus imágenes.`)) {
+            fetch(`/vendedor/propiedad/eliminar/${id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() if csrf_token else "" }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ Propiedad eliminada correctamente');
+                    location.reload();
+                } else {
+                    alert('❌ Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('❌ Error al eliminar la propiedad');
+                console.error(error);
+            });
+        }
+    }
+
+    // ============================================
+    // FILTROS
+    // ============================================
+    function renderProducts() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const typeFilter = document.getElementById('typeFilter').value;
+        const estadoFilter = document.getElementById('estadoFilter').value;
+        
+        const grid = document.getElementById('productsGrid');
+        const cards = grid.querySelectorAll('[data-propiedad-id]');
+        let visibleCount = 0;
+        
+        cards.forEach(card => {
+            const titulo = card.querySelector('.product-title')?.textContent?.toLowerCase() || '';
+            const id = card.querySelector('.product-id')?.textContent?.toLowerCase() || '';
+            const tipo = card.querySelector('[class*="bi-tag"]')?.parentElement?.textContent?.toLowerCase() || '';
+            const estado = card.querySelector('.badge-flat')?.textContent?.toLowerCase().trim() || '';
+            
+            const matchSearch = titulo.includes(searchTerm) || id.includes(searchTerm) || tipo.includes(searchTerm);
+            const matchType = typeFilter === 'all' || tipo.includes(typeFilter.toLowerCase());
+            const matchEstado = estadoFilter === 'all' || estado.includes(estadoFilter.toLowerCase());
+            
+            if (matchSearch && matchType && matchEstado) {
+                card.style.display = '';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        
+        document.getElementById('productCount').textContent = visibleCount;
+    }
+
+    document.getElementById('searchInput')?.addEventListener('input', renderProducts);
+    document.getElementById('typeFilter')?.addEventListener('change', renderProducts);
+    document.getElementById('estadoFilter')?.addEventListener('change', renderProducts);
+    document.getElementById('resetFiltersBtn')?.addEventListener('click', function() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('typeFilter').value = 'all';
+        document.getElementById('estadoFilter').value = 'all';
+        renderProducts();
+    });
+
+    // ============================================
+    // SIDEBAR TOGGLE
+    // ============================================
+    const sidebar = document.getElementById('sidebarMenu');
+    const toggleBtn = document.getElementById('toggleSidebarBtn');
+    if(toggleBtn && sidebar) {
+        toggleBtn.addEventListener('click', () => sidebar.classList.toggle('show'));
+        window.addEventListener('click', (e) => {
+            if(window.innerWidth < 768 && sidebar.classList.contains('show') && !sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
+                sidebar.classList.remove('show');
+            }
+        });
+    }
+</script>
+
+<style>
+    /* Estilos para el carrusel */
+    .carousel {
+        height: 200px;
+        overflow: hidden;
+    }
+    .carousel-inner {
+        height: 100%;
+    }
+    .carousel-item {
+        height: 100%;
+    }
+    .carousel-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .carousel-control-prev,
+    .carousel-control-next {
+        width: 10%;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    .product-card:hover .carousel-control-prev,
+    .product-card:hover .carousel-control-next {
+        opacity: 0.8;
+    }
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+        width: 20px;
+        height: 20px;
+        background-color: rgba(0,0,0,0.5);
+        border-radius: 50%;
+        padding: 10px;
+        background-size: 60%;
+    }
+    .carousel-indicators {
+        margin-bottom: 0;
+    }
+    .carousel-indicators button {
+        width: 8px !important;
+        height: 8px !important;
+        border-radius: 50%;
+        margin: 0 3px;
+        background-color: rgba(255,255,255,0.6);
+        border: none;
+    }
+    .carousel-indicators .active {
+        background-color: #e25c0c;
+    }
+
+    /* Estilos para el modal de imágenes */
+    .drop-zone {
+        border: 2px dashed #cbd5e1;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        background: #fafbfc;
+    }
+    .drop-zone:hover {
+        border-color: #e25c0c;
+        background: #e25c0c05;
+    }
+    .drop-zone-content {
+        pointer-events: none;
+    }
+    .position-relative {
+        position: relative;
+    }
+    
+    /* Resto de estilos existentes */
+    .product-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    .product-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .product-img {
+        background: #f8f9fa;
+        min-height: 200px;
+        overflow: hidden;
+    }
+    .product-body {
+        padding: 12px 16px;
+        flex: 1;
+    }
+    .product-title {
+        font-weight: 600;
+        color: #1a2c3e;
+        font-size: 0.95rem;
+    }
+    .product-id {
+        font-size: 0.7rem;
+        color: #6c757d;
+    }
+    .product-price {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #e25c0c;
+    }
+    .badge-flat {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        display: inline-block;
+    }
+    .badge-success-flat {
+        background: #d4edda;
+        color: #155724;
+    }
+    .badge-danger-flat {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    .badge-warning-flat {
+        background: #fff3cd;
+        color: #856404;
+    }
+    .metric-card {
+        background: white;
+        padding: 16px;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border-left: 3px solid #e25c0c;
+    }
+    .metric-title {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-bottom: 4px;
+    }
+    .metric-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1a2c3e;
+    }
+    .nav-link-custom {
+        color: #1a2c3e;
+        padding: 10px 16px;
+        border-radius: 6px;
+        text-decoration: none;
+        margin-bottom: 2px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.2s;
+    }
+    .nav-link-custom:hover {
+        background: #f8f9fa;
+        color: #e25c0c;
+    }
+    .nav-link-custom.active {
+        background: #e25c0c;
+        color: white;
+    }
+    .nav-link-custom.active i {
+        color: white;
+    }
+    .sidebar {
+        background: #ffffff;
+        border-right: 1px solid #e9ecef;
+        min-height: 100vh;
+        width: 240px;
+    }
+    .top-bar {
+        background: white;
+        padding: 12px 24px;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .btn-primary-sobre {
+        background-color: #e25c0c;
+        border-color: #e25c0c;
+        color: white;
+    }
+    .btn-primary-sobre:hover {
+        background-color: #c44e0a;
+        border-color: #c44e0a;
+        color: white;
+    }
+    .btn-outline-sobre {
+        border-color: #e25c0c;
+        color: #e25c0c;
+    }
+    .btn-outline-sobre:hover {
+        background-color: #e25c0c;
+        color: white;
+    }
+    .text-orange-sobre {
+        color: #e25c0c;
+    }
+    .filter-bar {
+        background: white;
+        padding: 16px;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+</style>
+
+{% endblock %}

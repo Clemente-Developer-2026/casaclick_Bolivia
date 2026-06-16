@@ -1,1 +1,1255 @@
-<h1>Bienvenido administrador</h1>
+{% extends 'base.html' %}
+{% block title %} Dashboard del administrador {% endblock %}
+
+{% block content %}
+
+<div class="container-fluid p-0 d-flex flex-column min-vh-100">
+    <div class="row g-0 flex-grow-1">
+        <!-- SIDEBAR ESTILO CORPORATIVO -->
+        <div class="col-auto sidebar" id="sidebarMenu">
+            <div class="d-flex flex-column h-100 p-3 pt-4">
+                <div class="mb-4 pb-2">
+                    <div class="fw-bold fs-5" style="color:#1a2c3e;">
+                        <i class="bi bi-bank2 me-2" style="color:#e25c0c;"></i> 
+                        <span style="letter-spacing:-0.2px;">Gestión<span class="text-orange-sobre">Core</span></span>
+                    </div>
+                    <div class="small text-secondary mt-1">v.2.0 · administrativo</div>
+                </div>
+                <nav class="nav flex-column">
+                    <a href="#" class="nav-link-custom active" data-section="dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                    <a href="#" class="nav-link-custom" data-section="usuarios"><i class="bi bi-people"></i> Usuarios</a>
+                    <a href="#" class="nav-link-custom" data-section="propiedades"><i class="bi bi-house"></i> Propiedades</a>
+                    <a href="#" class="nav-link-custom" data-section="ubicaciones"><i class="bi bi-geo-alt"></i> Ubicaciones</a>
+                    <a href="#" class="nav-link-custom" data-section="auditoria"><i class="bi bi-clock-history"></i> Auditoría</a>
+                </nav>
+                <hr class="my-3">
+                <div class="small text-secondary mt-auto">
+                    <i class="bi bi-person-circle me-1"></i> {{ current_user.nombre }} · Sesión activa
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="col bg-light" style="background-color: #eef2f5 !important;">
+            <!-- TOP BAR -->
+            <div class="top-bar d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-outline-sobre d-md-none" id="toggleSidebarBtn"><i class="bi bi-list"></i></button>
+                    <h5 class="mb-0 fw-semibold" style="font-size: 1rem;">Panel de control / <span class="text-orange-sobre" id="seccionActual">Resumen ejecutivo</span></h5>
+                </div>
+                <div class="d-flex gap-2">
+                    <span class="small text-secondary"><i class="bi bi-calendar3"></i> {{ datetime.now().strftime('%d %b %Y') }}</span>
+                </div>
+            </div>
+
+            <div class="p-3 p-md-4" id="contenidoPrincipal">
+                <!-- CONTENIDO DEL DASHBOARD - Sección Dashboard -->
+                <div id="seccion-dashboard">
+                    <!-- MÉTRICAS CLAVE -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3 col-6">
+                            <div class="metric-card">
+                                <div class="metric-title">Total propiedades</div>
+                                <div class="metric-value" id="totalPropiedades">{{ total_propiedades }}</div>
+                                <div class="metric-trend text-success">+{{ propiedades_recientes|length }} últimas 7 días</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="metric-card">
+                                <div class="metric-title">Usuarios registrados</div>
+                                <div class="metric-value" id="totalUsuarios">{{ total_usuarios }}</div>
+                                <div class="metric-trend text-success">+{{ usuarios_recientes|length }} nuevos</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="metric-card">
+                                <div class="metric-title">Propiedades disponibles</div>
+                                <div class="metric-value" id="propDisponibles">{{ propiedades_activas }}</div>
+                                <div class="metric-trend text-secondary">{{ propiedades_vendidas }} vendidas</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="metric-card">
+                                <div class="metric-title">Propiedades alquiladas</div>
+                                <div class="metric-value" id="propAlquiladas">{{ propiedades_alquiladas }}</div>
+                                <div class="metric-trend text-info">+{{ propiedades_alquiladas }} alquileres</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GRÁFICO DE DISTRIBUCIÓN POR TIPO -->
+                    <div class="card-plain mb-4">
+                        <div class="card-header-plain">
+                            <i class="bi bi-pie-chart me-2 text-orange-sobre"></i> Distribución por tipo de propiedad
+                        </div>
+                        <div class="p-3">
+                            <div class="row">
+                                {% for tipo in tipos_data %}
+                                <div class="col-6 col-md-3 mb-3">
+                                    <div class="text-center">
+                                        <div class="fw-bold fs-4 text-orange-sobre">{{ tipo.total }}</div>
+                                        <div class="small text-secondary">{{ tipo.tipo|capitalize }}</div>
+                                        <div class="progress mt-1" style="height: 5px;">
+                                            <div class="progress-bar bg-orange-sobre" 
+                                                 style="width: {{ (tipo.total / total_propiedades * 100) if total_propiedades > 0 else 0 }}%;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="col-12 text-center text-secondary">No hay datos disponibles</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GRÁFICO DE ACTIVIDAD MENSUAL -->
+                    <div class="card-plain">
+                        <div class="card-header-plain">
+                            <i class="bi bi-bar-chart-steps me-2 text-orange-sobre"></i> Propiedades publicadas (últimos 6 meses)
+                        </div>
+                        <div class="p-3">
+                            <div class="simple-bars">
+                                {% for mes in meses %}
+                                    {% set max_ventas = ventas_mensuales|max|default(1) %}
+                                    {% set altura = ((ventas_mensuales[loop.index0] / (max_ventas + 1) * 100)|round|int) if max_ventas > 0 else 10 %}
+                                    <div class="simple-bar-item">
+                                        <div class="bar-column" style='height: {{ altura }}px;'></div>
+                                        <div class="bar-label">{{ mes }}</div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <div class="small text-secondary mt-3 border-top pt-2 text-center">Volumen de publicaciones mensuales</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN USUARIOS -->
+                <div id="seccion-usuarios" style="display:none;">
+                    <div class="card-plain mb-4">
+                        <div class="card-header-plain d-flex flex-wrap justify-content-between align-items-center">
+                            <span><i class="bi bi-people me-2 text-orange-sobre"></i> Lista de usuarios</span>
+                            <div class="d-flex gap-2">
+                                <input type="text" class="form-control form-control-sm" id="buscarUsuario" placeholder="Buscar usuario..." style="width: 200px;">
+                                <button class="btn btn-primary-sobre btn-sm" onclick="cargarUsuarios()">
+                                    <i class="bi bi-arrow-clockwise"></i> Actualizar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-0 overflow-auto">
+                            <div id="loadingUsuarios" class="text-center p-3">
+                                <div class="spinner-border text-orange-sobre" role="status">
+                                    <span class="visually-hidden">Cargando...</span>
+                                </div>
+                            </div>
+                            <table class="table-professional" id="tablaUsuarios">
+                                <thead>
+                                    <tr><th>ID</th><th>Nombre</th><th>Email</th><th>Rol</th><th>Acciones</th></tr>
+                                </thead>
+                                <tbody id="tbodyUsuarios">
+                                    <!-- Los datos se cargan con JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN PROPIEDADES -->
+                <div id="seccion-propiedades" style="display:none;">
+                    <div class="card-plain mb-4">
+                        <div class="card-header-plain d-flex flex-wrap justify-content-between align-items-center">
+                            <span><i class="bi bi-house me-2 text-orange-sobre"></i> Lista de propiedades</span>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary-sobre btn-sm" data-bs-toggle="modal" data-bs-target="#nuevoProductoModal">
+                                    <i class="bi bi-plus-circle"></i> Nueva propiedad
+                                </button>
+                                <button class="btn btn-primary-sobre btn-sm" onclick="cargarPropiedades()">
+                                    <i class="bi bi-arrow-clockwise"></i> Actualizar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-0 overflow-auto">
+                            <div id="loadingPropiedades" class="text-center p-3">
+                                <div class="spinner-border text-orange-sobre" role="status">
+                                    <span class="visually-hidden">Cargando...</span>
+                                </div>
+                            </div>
+                            <table class="table-professional" id="tablaPropiedades">
+                                <thead>
+                                    <tr><th>ID</th><th>Vendedor</th><th>Propiedad</th><th>Estado</th><th>Precio</th><th>Acciones</th></tr>
+                                </thead>
+                                <tbody id="tbodyPropiedades">
+                                    <!-- Los datos se cargan con JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN UBICACIONES -->
+                <div id="seccion-ubicaciones" style="display:none;">
+                    <ul class="nav nav-tabs mb-3" id="ubicacionesTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#departamentosTab" type="button" role="tab">Departamentos</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#provinciasTab" type="button" role="tab">Provincias</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#ciudadesTab" type="button" role="tab">Ciudades</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <!-- Departamentos -->
+                        <div class="tab-pane fade show active" id="departamentosTab">
+                            <div class="card-plain">
+                                <div class="card-header-plain d-flex flex-wrap justify-content-between align-items-center">
+                                    <span><i class="bi bi-geo-alt me-2 text-orange-sobre"></i> Departamentos</span>
+                                    <button class="btn btn-primary-sobre btn-sm" data-bs-toggle="modal" data-bs-target="#modalDepartamento">
+                                        <i class="bi bi-plus-circle"></i> Nuevo departamento
+                                    </button>
+                                </div>
+                                <div class="p-0 overflow-auto">
+                                    <div id="loadingDepartamentos" class="text-center p-3">
+                                        <div class="spinner-border text-orange-sobre" role="status">
+                                            <span class="visually-hidden">Cargando...</span>
+                                        </div>
+                                    </div>
+                                    <table class="table-professional">
+                                        <thead><tr><th>ID</th><th>Departamento</th><th>Provincias</th><th>Acciones</th></tr></thead>
+                                        <tbody id="tbodyDepartamentos"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Provincias -->
+                        <div class="tab-pane fade" id="provinciasTab">
+                            <div class="card-plain">
+                                <div class="card-header-plain d-flex flex-wrap justify-content-between align-items-center">
+                                    <span><i class="bi bi-geo-alt me-2 text-orange-sobre"></i> Provincias</span>
+                                    <button class="btn btn-primary-sobre btn-sm" data-bs-toggle="modal" data-bs-target="#modalProvincia">
+                                        <i class="bi bi-plus-circle"></i> Nueva provincia
+                                    </button>
+                                </div>
+                                <div class="p-0 overflow-auto">
+                                    <div id="loadingProvincias" class="text-center p-3">
+                                        <div class="spinner-border text-orange-sobre" role="status">
+                                            <span class="visually-hidden">Cargando...</span>
+                                        </div>
+                                    </div>
+                                    <table class="table-professional">
+                                        <thead><tr><th>ID</th><th>Provincia</th><th>Departamento</th><th>Ciudades</th><th>Acciones</th></tr></thead>
+                                        <tbody id="tbodyProvincias"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Ciudades -->
+                        <div class="tab-pane fade" id="ciudadesTab">
+                            <div class="card-plain">
+                                <div class="card-header-plain d-flex flex-wrap justify-content-between align-items-center">
+                                    <span><i class="bi bi-geo-alt me-2 text-orange-sobre"></i> Ciudades</span>
+                                    <button class="btn btn-primary-sobre btn-sm" data-bs-toggle="modal" data-bs-target="#modalCiudad">
+                                        <i class="bi bi-plus-circle"></i> Nueva ciudad
+                                    </button>
+                                </div>
+                                <div class="p-0 overflow-auto">
+                                    <div id="loadingCiudades" class="text-center p-3">
+                                        <div class="spinner-border text-orange-sobre" role="status">
+                                            <span class="visually-hidden">Cargando...</span>
+                                        </div>
+                                    </div>
+                                    <table class="table-professional">
+                                        <thead><tr><th>ID</th><th>Ciudad</th><th>Provincia</th><th>Departamento</th><th>Acciones</th></tr></thead>
+                                        <tbody id="tbodyCiudades"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN AUDITORÍA -->
+                <div id="seccion-auditoria" style="display:none;">
+                    <div class="card-plain">
+                        <div class="card-header-plain d-flex flex-wrap justify-content-between align-items-center">
+                            <span><i class="bi bi-clock-history me-2 text-orange-sobre"></i> Historial de auditoría</span>
+                            <button class="btn btn-primary-sobre btn-sm" onclick="cargarAuditoria()">
+                                <i class="bi bi-arrow-clockwise"></i> Actualizar
+                            </button>
+                        </div>
+                        <div class="p-0 overflow-auto">
+                            <div id="loadingAuditoria" class="text-center p-3">
+                                <div class="spinner-border text-orange-sobre" role="status">
+                                    <span class="visually-hidden">Cargando...</span>
+                                </div>
+                            </div>
+                            <table class="table-professional">
+                                <thead><tr><th>Usuario</th><th>Acción</th><th>Tabla</th><th>Registro ID</th><th>Fecha</th><th>Hora</th></tr></thead>
+                                <tbody id="tbodyAuditoria"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3 text-end small text-secondary py-2">
+                    Dashboard Corporativo — Datos actualizados sincrónicamente
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODALES CRUD -->
+<!-- Modal Ver Usuario -->
+<div class="modal fade" id="modalVerUsuario" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-person me-2 text-orange-sobre"></i> Detalles del usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="detalleUsuario">
+                <!-- Cargado por JS -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ver Propiedad -->
+<div class="modal fade" id="modalVerPropiedad" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-house me-2 text-orange-sobre"></i> Detalles de la propiedad</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="detallePropiedad">
+                <!-- Cargado por JS -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Departamento -->
+<div class="modal fade" id="modalDepartamento" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-geo-alt me-2 text-orange-sobre"></i> <span id="tituloModalDepartamento">Nuevo departamento</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formDepartamento">
+                    <input type="hidden" id="departamentoId">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre del departamento *</label>
+                        <input type="text" class="form-control" id="departamentoNombre" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-sobre" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary-sobre" onclick="guardarDepartamento()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Provincia -->
+<div class="modal fade" id="modalProvincia" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-geo-alt me-2 text-orange-sobre"></i> <span id="tituloModalProvincia">Nueva provincia</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formProvincia">
+                    <input type="hidden" id="provinciaId">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre de la provincia *</label>
+                        <input type="text" class="form-control" id="provinciaNombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Departamento *</label>
+                        <select class="form-select" id="provinciaDepartamento" required>
+                            <option value="">Seleccionar...</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-sobre" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary-sobre" onclick="guardarProvincia()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ciudad -->
+<div class="modal fade" id="modalCiudad" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-geo-alt me-2 text-orange-sobre"></i> <span id="tituloModalCiudad">Nueva ciudad</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formCiudad">
+                    <input type="hidden" id="ciudadId">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre de la ciudad *</label>
+                        <input type="text" class="form-control" id="ciudadNombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Provincia *</label>
+                        <select class="form-select" id="ciudadProvincia" required>
+                            <option value="">Seleccionar...</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-sobre" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary-sobre" onclick="guardarCiudad()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL NUEVA PROPIEDAD (existente) -->
+<div class="modal fade" id="nuevoProductoModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="nuevoProductoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="nuevoProductoModalLabel">
+                    <i class="bi bi-plus-circle me-2 text-orange-sobre"></i> Registrar nueva propiedad
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formNuevaPropiedad">
+                    <div class="mb-3">
+                        <label for="propTitulo" class="form-label">Título *</label>
+                        <input type="text" class="form-control" id="propTitulo" placeholder="Ej: Casa en el centro" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="propDescripcion" class="form-label">Descripción *</label>
+                        <textarea class="form-control" id="propDescripcion" rows="3" placeholder="Descripción detallada de la propiedad" required></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="propTipo" class="form-label">Tipo *</label>
+                            <select class="form-select" id="propTipo" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="casa">Casa</option>
+                                <option value="departamento">Departamento</option>
+                                <option value="terreno">Terreno</option>
+                                <option value="local">Local comercial</option>
+                                <option value="oficina">Oficina</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="propEstado" class="form-label">Estado *</label>
+                            <select class="form-select" id="propEstado" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="disponible">Disponible</option>
+                                <option value="vendido">Vendido</option>
+                                <option value="alquilado">Alquilado</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="propPrecio" class="form-label">Precio (USD) *</label>
+                            <input type="number" step="0.01" class="form-control" id="propPrecio" placeholder="0.00" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="propSuperficie" class="form-label">Superficie (m²) *</label>
+                            <input type="number" step="0.01" class="form-control" id="propSuperficie" placeholder="0" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="propDireccion" class="form-label">Dirección *</label>
+                        <input type="text" class="form-control" id="propDireccion" placeholder="Calle, número, zona" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-sobre" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary-sobre" id="btnGuardarPropiedad">Guardar propiedad</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // ============================================
+    // FUNCIONES DE NAVEGACIÓN
+    // ============================================
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Sidebar toggle
+        const sidebar = document.getElementById('sidebarMenu');
+        const toggleBtn = document.getElementById('toggleSidebarBtn');
+        if(toggleBtn && sidebar) {
+            toggleBtn.addEventListener('click', function() {
+                sidebar.classList.toggle('show');
+            });
+        }
+        
+        // Navegación por secciones
+        document.querySelectorAll('.nav-link-custom[data-section]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const section = this.dataset.section;
+                mostrarSeccion(section);
+                
+                // Actualizar active
+                document.querySelectorAll('.nav-link-custom').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
+        // Cargar datos iniciales
+        cargarUsuarios();
+        cargarPropiedades();
+        cargarDepartamentos();
+        cargarProvincias();
+        cargarCiudades();
+        cargarAuditoria();
+        
+        // Buscar usuarios
+        document.getElementById('buscarUsuario')?.addEventListener('keyup', function() {
+            filtrarUsuarios(this.value);
+        });
+    });
+    
+    function mostrarSeccion(section) {
+        const secciones = ['dashboard', 'usuarios', 'propiedades', 'ubicaciones', 'auditoria'];
+        const titulos = {
+            'dashboard': 'Resumen ejecutivo',
+            'usuarios': 'Gestión de usuarios',
+            'propiedades': 'Gestión de propiedades',
+            'ubicaciones': 'Gestión de ubicaciones',
+            'auditoria': 'Historial de auditoría'
+        };
+        
+        secciones.forEach(sec => {
+            const el = document.getElementById('seccion-' + sec);
+            if (el) el.style.display = sec === section ? 'block' : 'none';
+        });
+        
+        document.getElementById('seccionActual').textContent = titulos[section] || section;
+    }
+    
+    // ============================================
+    // FUNCIONES PARA USUARIOS
+    // ============================================
+    
+    async function cargarUsuarios() {
+        try {
+            document.getElementById('loadingUsuarios').style.display = 'block';
+            const response = await fetch('/admin/usuarios');
+            const data = await response.json();
+            
+            if (data.success) {
+                const tbody = document.getElementById('tbodyUsuarios');
+                tbody.innerHTML = '';
+                data.data.forEach(user => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>U-${user.id}</td>
+                        <td><i class="bi bi-person me-1 text-secondary"></i> ${user.nombre}</td>
+                        <td>${user.email}</td>
+                        <td><span class="badge-flat ${user.rol === 'administrador' ? 'badge-primary-flat' : user.rol === 'vendedor' ? 'badge-info-flat' : 'badge-success-flat'}">${user.rol}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-info me-1" onclick="verUsuario(${user.id})" title="Ver"><i class="bi bi-eye"></i></button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="eliminarUsuario(${user.id}, '${user.nombre}')" title="Eliminar"><i class="bi bi-trash"></i></button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                document.getElementById('loadingUsuarios').style.display = 'none';
+                document.getElementById('tablaUsuarios').style.display = '';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('loadingUsuarios').innerHTML = '<div class="text-danger">Error al cargar usuarios</div>';
+        }
+    }
+    
+    function filtrarUsuarios(texto) {
+        const rows = document.querySelectorAll('#tbodyUsuarios tr');
+        texto = texto.toLowerCase();
+        rows.forEach(row => {
+            const nombre = row.cells[1]?.textContent.toLowerCase() || '';
+            const email = row.cells[2]?.textContent.toLowerCase() || '';
+            row.style.display = nombre.includes(texto) || email.includes(texto) ? '' : 'none';
+        });
+    }
+    
+    async function verUsuario(id) {
+        try {
+            const response = await fetch(`/admin/usuarios/${id}`);
+            const data = await response.json();
+            if (data.success) {
+                const user = data.data;
+                document.getElementById('detalleUsuario').innerHTML = `
+                <div class="row">
+                    <div class="col-12">
+                        <div class="row mb-3">
+                            <div class="col-4">
+                                <label class="form-label fw-semibold text-secondary" style="font-size: 0.85rem;">ID de usuario</label>
+                            </div>
+                            <div class="col-8">
+                                <div class="form-control" style="background: #f8f9fa; border: 1px solid #e9ecef; padding: 6px 12px; border-radius: 6px;">
+                                    U-${user.id_usuario}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-4">
+                                <label class="form-label fw-semibold text-secondary" style="font-size: 0.85rem;">Nombre completo</label>
+                            </div>
+                            <div class="col-8">
+                                <div class="form-control" style="background: #f8f9fa; border: 1px solid #e9ecef; padding: 6px 12px; border-radius: 6px;">
+                                    ${user.nombre}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-4">
+                                <label class="form-label fw-semibold text-secondary" style="font-size: 0.85rem;">Correo electrónico</label>
+                            </div>
+                            <div class="col-8">
+                                <div class="form-control" style="background: #f8f9fa; border: 1px solid #e9ecef; padding: 6px 12px; border-radius: 6px;">
+                                    ${user.email}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-4">
+                                <label class="form-label fw-semibold text-secondary" style="font-size: 0.85rem;">Teléfono</label>
+                            </div>
+                            <div class="col-8">
+                                <div class="form-control" style="background: #f8f9fa; border: 1px solid #e9ecef; padding: 6px 12px; border-radius: 6px;">
+                                    ${user.telefono || 'No registrado'}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-4">
+                                <label class="form-label fw-semibold text-secondary" style="font-size: 0.85rem;">Rol</label>
+                            </div>
+                            <div class="col-8">
+                                <div class="form-control" style="background: #f8f9fa; border: 1px solid #e9ecef; padding: 6px 12px; border-radius: 6px;">
+                                    <span class="badge-flat ${user.rol === 'administrador' ? 'badge-primary-flat' : user.rol === 'vendedor' ? 'badge-info-flat' : 'badge-success-flat'}">${user.rol}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-4">
+                                <label class="form-label fw-semibold text-secondary" style="font-size: 0.85rem;">Fecha de registro</label>
+                            </div>
+                            <div class="col-8">
+                                <div class="form-control" style="background: #f8f9fa; border: 1px solid #e9ecef; padding: 6px 12px; border-radius: 6px;">
+                                    ${user.fecha_registro}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-0">
+                            <div class="col-4">
+                                <label class="form-label fw-semibold text-secondary" style="font-size: 0.85rem;">Total propiedades</label>
+                            </div>
+                            <div class="col-8">
+                                <div class="form-control" style="background: #f8f9fa; border: 1px solid #e9ecef; padding: 6px 12px; border-radius: 6px;">
+                                    ${user.total_propiedades || 0}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+                new bootstrap.Modal(document.getElementById('modalVerUsuario')).show();
+            }
+        } catch (error) {
+            alert('Error al cargar el usuario');
+        }
+    }
+    
+    async function eliminarUsuario(id, nombre) {
+        if (!confirm(`¿Estás seguro de eliminar al usuario "${nombre}"? Esta acción eliminará todas sus propiedades.`)) return;
+        
+        try {
+            const response = await fetch(`/admin/usuarios/${id}`, { method: 'DELETE' });
+            const data = await response.json();
+            if (data.success) {
+                alert('✅ Usuario eliminado correctamente');
+                cargarUsuarios();
+            } else {
+                alert('❌ Error: ' + data.message);
+            }
+        } catch (error) {
+            alert('Error al eliminar usuario');
+        }
+    }
+    
+    // ============================================
+    // FUNCIONES PARA PROPIEDADES
+    // ============================================
+    
+    async function cargarPropiedades() {
+        try {
+            document.getElementById('loadingPropiedades').style.display = 'block';
+            const response = await fetch('/admin/propiedades');
+            const data = await response.json();
+            
+            if (data.success) {
+                const tbody = document.getElementById('tbodyPropiedades');
+                tbody.innerHTML = '';
+                data.data.forEach(prop => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>PR-${prop.id}</td>
+                        <td><i class="bi bi-person me-1 text-secondary"></i> ${prop.nombre_vendedor}</td>
+                        <td><i class="bi bi-house me-1 text-secondary"></i> ${prop.propiedad}</td>
+                        <td><span class="badge-flat ${prop.estado === 'disponible' ? 'badge-success-flat' : prop.estado === 'vendido' ? 'badge-danger-flat' : 'badge-warning-flat'}">${prop.estado}</span></td>
+                        <td>$${prop.precio}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-info me-1" onclick="verPropiedad(${prop.id})" title="Ver"><i class="bi bi-eye"></i></button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="eliminarPropiedad(${prop.id}, '${prop.propiedad}')" title="Eliminar"><i class="bi bi-trash"></i></button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                document.getElementById('loadingPropiedades').style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('loadingPropiedades').innerHTML = '<div class="text-danger">Error al cargar propiedades</div>';
+        }
+    }
+    
+    async function verPropiedad(id) {
+        try {
+            const response = await fetch(`/admin/propiedades/${id}`);
+            const data = await response.json();
+            if (data.success) {
+                const prop = data.data;
+                let html = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-orange-sobre">Datos de la propiedad</h6>
+                            <p><strong>ID:</strong> PR-${prop.id_propiedad}</p>
+                            <p><strong>Título:</strong> ${prop.titulo}</p>
+                            <p><strong>Descripción:</strong> ${prop.descripcion}</p>
+                            <p><strong>Tipo:</strong> ${prop.tipo}</p>
+                            <p><strong>Superficie:</strong> ${prop.superficie} m²</p>
+                            <p><strong>Dirección:</strong> ${prop.direccion}</p>
+                            <p><strong>Precio:</strong> $${prop.precio}</p>
+                            <p><strong>Estado:</strong> <span class="badge-flat ${prop.estado === 'disponible' ? 'badge-success-flat' : prop.estado === 'vendido' ? 'badge-danger-flat' : 'badge-warning-flat'}">${prop.estado}</span></p>
+                            <p><strong>Fecha publicación:</strong> ${prop.fecha_publicacion}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-orange-sobre">Ubicación</h6>
+                            <p><strong>Departamento:</strong> ${prop.ubicacion?.departamento || 'N/A'}</p>
+                            <p><strong>Provincia:</strong> ${prop.ubicacion?.provincia || 'N/A'}</p>
+                            <p><strong>Ciudad:</strong> ${prop.ubicacion?.ciudad || 'N/A'}</p>
+                            <hr>
+                            <h6 class="text-orange-sobre">Vendedor</h6>
+                            ${prop.vendedor ? `
+                                <p><strong>Nombre:</strong> ${prop.vendedor.nombre}</p>
+                                <p><strong>Email:</strong> ${prop.vendedor.email}</p>
+                                <p><strong>Teléfono:</strong> ${prop.vendedor.telefono || 'N/A'}</p>
+                                <p><strong>Rol:</strong> ${prop.vendedor.rol}</p>
+                            ` : '<p>Vendedor no disponible</p>'}
+                            ${prop.imagenes && prop.imagenes.length > 0 ? `
+                                <hr>
+                                <h6 class="text-orange-sobre">Imágenes (${prop.imagenes.length})</h6>
+                                ${prop.imagenes.map(img => `<p><i class="bi bi-image"></i> ${img.imagen}</p>`).join('')}
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+                document.getElementById('detallePropiedad').innerHTML = html;
+                new bootstrap.Modal(document.getElementById('modalVerPropiedad')).show();
+            }
+        } catch (error) {
+            alert('Error al cargar la propiedad');
+        }
+    }
+    
+    async function eliminarPropiedad(id, titulo) {
+        if (!confirm(`¿Estás seguro de eliminar la propiedad "${titulo}"?`)) return;
+        
+        try {
+            const response = await fetch(`/admin/propiedades/${id}`, { method: 'DELETE' });
+            const data = await response.json();
+            if (data.success) {
+                alert('✅ Propiedad eliminada correctamente');
+                cargarPropiedades();
+            } else {
+                alert('❌ Error: ' + data.message);
+            }
+        } catch (error) {
+            alert('Error al eliminar propiedad');
+        }
+    }
+    
+    // ============================================
+    // FUNCIONES PARA DEPARTAMENTOS
+    // ============================================
+    
+    async function cargarDepartamentos() {
+        try {
+            document.getElementById('loadingDepartamentos').style.display = 'block';
+            const response = await fetch('/admin/departamentos');
+            const data = await response.json();
+            
+            if (data.success) {
+                const tbody = document.getElementById('tbodyDepartamentos');
+                tbody.innerHTML = '';
+                data.data.forEach(dep => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${dep.id_departamento}</td>
+                        <td>${dep.departamento}</td>
+                        <td><span class="badge-flat badge-info-flat">${dep.provincias ? dep.provincias.length : 0}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-warning me-1" onclick="editarDepartamento(${dep.id_departamento}, '${dep.departamento}')" title="Editar"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="eliminarDepartamento(${dep.id_departamento}, '${dep.departamento}')" title="Eliminar"><i class="bi bi-trash"></i></button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                // Actualizar selects de departamentos
+                actualizarSelectDepartamentos(data.data);
+                document.getElementById('loadingDepartamentos').style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('loadingDepartamentos').innerHTML = '<div class="text-danger">Error al cargar departamentos</div>';
+        }
+    }
+    
+    function actualizarSelectDepartamentos(departamentos) {
+        const selects = ['provinciaDepartamento'];
+        selects.forEach(id => {
+            const select = document.getElementById(id);
+            if (select) {
+                const valorActual = select.value;
+                select.innerHTML = '<option value="">Seleccionar...</option>';
+                departamentos.forEach(d => {
+                    const option = document.createElement('option');
+                    option.value = d.id_departamento;
+                    option.textContent = d.departamento;
+                    select.appendChild(option);
+                });
+                if (valorActual) select.value = valorActual;
+            }
+        });
+    }
+    
+    function editarDepartamento(id, nombre) {
+        document.getElementById('departamentoId').value = id;
+        document.getElementById('departamentoNombre').value = nombre;
+        document.getElementById('tituloModalDepartamento').textContent = 'Editar departamento';
+        new bootstrap.Modal(document.getElementById('modalDepartamento')).show();
+    }
+    
+    async function guardarDepartamento() {
+        const id = document.getElementById('departamentoId').value;
+        const nombre = document.getElementById('departamentoNombre').value;
+        
+        if (!nombre) {
+            alert('El nombre es obligatorio');
+            return;
+        }
+        
+        try {
+            const url = id ? `/admin/departamentos/${id}` : '/admin/departamentos';
+            const method = id ? 'PUT' : 'POST';
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ departamento: nombre })
+            });
+            const data = await response.json();
+            if (data.success) {
+                alert(id ? '✅ Departamento actualizado' : '✅ Departamento creado');
+                bootstrap.Modal.getInstance(document.getElementById('modalDepartamento')).hide();
+                document.getElementById('formDepartamento').reset();
+                document.getElementById('departamentoId').value = '';
+                cargarDepartamentos();
+            } else {
+                alert('❌ Error: ' + data.message);
+            }
+        } catch (error) {
+            alert('Error al guardar departamento');
+        }
+    }
+    
+    async function eliminarDepartamento(id, nombre) {
+        if (!confirm(`¿Estás seguro de eliminar el departamento "${nombre}"? Se eliminarán todas sus provincias y ciudades.`)) return;
+        
+        try {
+            const response = await fetch(`/admin/departamentos/${id}`, { method: 'DELETE' });
+            const data = await response.json();
+            if (data.success) {
+                alert('✅ Departamento eliminado');
+                cargarDepartamentos();
+            } else {
+                alert('❌ Error: ' + data.message);
+            }
+        } catch (error) {
+            alert('Error al eliminar departamento');
+        }
+    }
+    
+    // ============================================
+    // FUNCIONES PARA PROVINCIAS
+    // ============================================
+    
+    async function cargarProvincias() {
+        try {
+            document.getElementById('loadingProvincias').style.display = 'block';
+            const response = await fetch('/admin/provincias');
+            const data = await response.json();
+            
+            if (data.success) {
+                const tbody = document.getElementById('tbodyProvincias');
+                tbody.innerHTML = '';
+                data.data.forEach(prov => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${prov.id_provincia}</td>
+                        <td>${prov.provincia}</td>
+                        <td>${prov.departamento_nombre || 'N/A'}</td>
+                        <td><span class="badge-flat badge-info-flat">${prov.ciudades ? prov.ciudades.length : 0}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-warning me-1" onclick="editarProvincia(${prov.id_provincia}, '${prov.provincia}', ${prov.id_departamento})" title="Editar"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="eliminarProvincia(${prov.id_provincia}, '${prov.provincia}')" title="Eliminar"><i class="bi bi-trash"></i></button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                // Actualizar selects de provincias
+                actualizarSelectProvincias(data.data);
+                document.getElementById('loadingProvincias').style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('loadingProvincias').innerHTML = '<div class="text-danger">Error al cargar provincias</div>';
+        }
+    }
+    
+    function actualizarSelectProvincias(provincias) {
+        const select = document.getElementById('ciudadProvincia');
+        if (select) {
+            const valorActual = select.value;
+            select.innerHTML = '<option value="">Seleccionar...</option>';
+            provincias.forEach(p => {
+                const option = document.createElement('option');
+                option.value = p.id_provincia;
+                option.textContent = `${p.provincia} (${p.departamento_nombre || 'N/A'})`;
+                select.appendChild(option);
+            });
+            if (valorActual) select.value = valorActual;
+        }
+    }
+    
+    function editarProvincia(id, nombre, idDepartamento) {
+        document.getElementById('provinciaId').value = id;
+        document.getElementById('provinciaNombre').value = nombre;
+        document.getElementById('provinciaDepartamento').value = idDepartamento;
+        document.getElementById('tituloModalProvincia').textContent = 'Editar provincia';
+        new bootstrap.Modal(document.getElementById('modalProvincia')).show();
+    }
+    
+    async function guardarProvincia() {
+        const id = document.getElementById('provinciaId').value;
+        const nombre = document.getElementById('provinciaNombre').value;
+        const idDepartamento = document.getElementById('provinciaDepartamento').value;
+        
+        if (!nombre || !idDepartamento) {
+            alert('Todos los campos son obligatorios');
+            return;
+        }
+        
+        try {
+            const url = id ? `/admin/provincias/${id}` : '/admin/provincias';
+            const method = id ? 'PUT' : 'POST';
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ provincia: nombre, id_departamento: parseInt(idDepartamento) })
+            });
+            const data = await response.json();
+            if (data.success) {
+                alert(id ? '✅ Provincia actualizada' : '✅ Provincia creada');
+                bootstrap.Modal.getInstance(document.getElementById('modalProvincia')).hide();
+                document.getElementById('formProvincia').reset();
+                document.getElementById('provinciaId').value = '';
+                cargarProvincias();
+                cargarDepartamentos();
+            } else {
+                alert('❌ Error: ' + data.message);
+            }
+        } catch (error) {
+            alert('Error al guardar provincia');
+        }
+    }
+    
+    async function eliminarProvincia(id, nombre) {
+        if (!confirm(`¿Estás seguro de eliminar la provincia "${nombre}"? Se eliminarán todas sus ciudades.`)) return;
+        
+        try {
+            const response = await fetch(`/admin/provincias/${id}`, { method: 'DELETE' });
+            const data = await response.json();
+            if (data.success) {
+                alert('✅ Provincia eliminada');
+                cargarProvincias();
+                cargarDepartamentos();
+            } else {
+                alert('❌ Error: ' + data.message);
+            }
+        } catch (error) {
+            alert('Error al eliminar provincia');
+        }
+    }
+    
+    // ============================================
+    // FUNCIONES PARA CIUDADES
+    // ============================================
+    
+    async function cargarCiudades() {
+        try {
+            document.getElementById('loadingCiudades').style.display = 'block';
+            const response = await fetch('/admin/ciudades');
+            const data = await response.json();
+            
+            if (data.success) {
+                const tbody = document.getElementById('tbodyCiudades');
+                tbody.innerHTML = '';
+                data.data.forEach(ciudad => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${ciudad.id_ciudad}</td>
+                        <td>${ciudad.ciudad}</td>
+                        <td>${ciudad.provincia_nombre || 'N/A'}</td>
+                        <td>${ciudad.departamento_nombre || 'N/A'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-warning me-1" onclick="editarCiudad(${ciudad.id_ciudad}, '${ciudad.ciudad}', ${ciudad.id_provincia})" title="Editar"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="eliminarCiudad(${ciudad.id_ciudad}, '${ciudad.ciudad}')" title="Eliminar"><i class="bi bi-trash"></i></button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                document.getElementById('loadingCiudades').style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('loadingCiudades').innerHTML = '<div class="text-danger">Error al cargar ciudades</div>';
+        }
+    }
+    
+    function editarCiudad(id, nombre, idProvincia) {
+        document.getElementById('ciudadId').value = id;
+        document.getElementById('ciudadNombre').value = nombre;
+        document.getElementById('ciudadProvincia').value = idProvincia;
+        document.getElementById('tituloModalCiudad').textContent = 'Editar ciudad';
+        new bootstrap.Modal(document.getElementById('modalCiudad')).show();
+    }
+    
+    async function guardarCiudad() {
+        const id = document.getElementById('ciudadId').value;
+        const nombre = document.getElementById('ciudadNombre').value;
+        const idProvincia = document.getElementById('ciudadProvincia').value;
+        
+        if (!nombre || !idProvincia) {
+            alert('Todos los campos son obligatorios');
+            return;
+        }
+        
+        try {
+            const url = id ? `/admin/ciudades/${id}` : '/admin/ciudades';
+            const method = id ? 'PUT' : 'POST';
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ciudad: nombre, id_provincia: parseInt(idProvincia) })
+            });
+            const data = await response.json();
+            if (data.success) {
+                alert(id ? '✅ Ciudad actualizada' : '✅ Ciudad creada');
+                bootstrap.Modal.getInstance(document.getElementById('modalCiudad')).hide();
+                document.getElementById('formCiudad').reset();
+                document.getElementById('ciudadId').value = '';
+                cargarCiudades();
+                cargarProvincias();
+            } else {
+                alert('❌ Error: ' + data.message);
+            }
+        } catch (error) {
+            alert('Error al guardar ciudad');
+        }
+    }
+    
+    async function eliminarCiudad(id, nombre) {
+        if (!confirm(`¿Estás seguro de eliminar la ciudad "${nombre}"?`)) return;
+        
+        try {
+            const response = await fetch(`/admin/ciudades/${id}`, { method: 'DELETE' });
+            const data = await response.json();
+            if (data.success) {
+                alert('✅ Ciudad eliminada');
+                cargarCiudades();
+            } else {
+                alert('❌ Error: ' + data.message);
+            }
+        } catch (error) {
+            alert('Error al eliminar ciudad');
+        }
+    }
+    
+    // ============================================
+    // FUNCIONES PARA AUDITORÍA
+    // ============================================
+    
+    async function cargarAuditoria() {
+        try {
+            document.getElementById('loadingAuditoria').style.display = 'block';
+            // Usar los datos de auditoría reciente del backend o endpoint específico
+            const response = await fetch('/api/auditoria/reciente');
+            if (!response.ok) {
+                // Si no hay endpoint, usamos datos del template
+                cargarAuditoriaLocal();
+                return;
+            }
+            const data = await response.json();
+            if (data.success) {
+                mostrarAuditoria(data.data);
+            }
+        } catch (error) {
+            // Fallback: usar datos del template
+            cargarAuditoriaLocal();
+        }
+    }
+    
+    function cargarAuditoriaLocal() {
+        // Usar los datos de auditoría que vienen del backend en el template
+        const tbody = document.getElementById('tbodyAuditoria');
+        const auditoriaData = document.querySelector('#tbodyAuditoria');
+        if (auditoriaData && typeof auditoriaData.dataset.auditoria !== 'undefined') {
+            // Si hay datos en data-attribute
+            try {
+                const data = JSON.parse(auditoriaData.dataset.auditoria);
+                mostrarAuditoria(data);
+            } catch (e) {
+                console.log('No hay datos de auditoría disponibles');
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-secondary">No hay actividad registrada</td></tr>';
+            }
+        }
+        document.getElementById('loadingAuditoria').style.display = 'none';
+    }
+    
+    function mostrarAuditoria(data) {
+        const tbody = document.getElementById('tbodyAuditoria');
+        tbody.innerHTML = '';
+        data.forEach(audit => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${audit.nombre_usuario || 'Sistema'}</td>
+                <td><span class="badge-flat ${audit.accion === 'INSERT' ? 'badge-success-flat' : audit.accion === 'UPDATE' ? 'badge-warning-flat' : 'badge-danger-flat'}">${audit.accion}</span></td>
+                <td>${audit.tabla_afectada}</td>
+                <td>${audit.registro_id}</td>
+                <td>${audit.fecha_actividad}</td>
+                <td>${audit.hora_actividad}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+        document.getElementById('loadingAuditoria').style.display = 'none';
+    }
+    
+    // ============================================
+    // FUNCIONES PARA GUARDAR NUEVA PROPIEDAD
+    // ============================================
+    
+    document.getElementById('btnGuardarPropiedad')?.addEventListener('click', async function() {
+        const form = document.getElementById('formNuevaPropiedad');
+        
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        
+        const datos = {
+            titulo: document.getElementById('propTitulo').value,
+            descripcion: document.getElementById('propDescripcion').value,
+            tipo: document.getElementById('propTipo').value,
+            estado: document.getElementById('propEstado').value,
+            precio: parseFloat(document.getElementById('propPrecio').value),
+            superficie: parseFloat(document.getElementById('propSuperficie').value),
+            direccion: document.getElementById('propDireccion').value,
+            id_departamento: 1,  // Temporal, deberías obtener de un select
+            id_provincia: 1,     // Temporal
+            id_ciudad: 1         // Temporal
+        };
+        
+        try {
+            const response = await fetch('/api/propiedades', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datos)
+            });
+            const data = await response.json();
+            if (data.success) {
+                alert('✅ Propiedad registrada correctamente');
+                bootstrap.Modal.getInstance(document.getElementById('nuevoProductoModal')).hide();
+                document.getElementById('formNuevaPropiedad').reset();
+                cargarPropiedades();
+                cargarUsuarios();
+                // Actualizar métricas
+                actualizarMetricas();
+            } else {
+                alert('❌ Error: ' + data.message);
+            }
+        } catch (error) {
+            console.error(error);
+            alert('❌ Error al guardar la propiedad');
+        }
+    });
+    
+    // ============================================
+    // FUNCIONES PARA ACTUALIZAR MÉTRICAS
+    // ============================================
+    
+    async function actualizarMetricas() {
+        try {
+            const response = await fetch('/admin/estadisticas');
+            const data = await response.json();
+            if (data.success) {
+                document.getElementById('totalPropiedades').textContent = data.data.propiedades.total;
+                document.getElementById('totalUsuarios').textContent = data.data.usuarios.total;
+                document.getElementById('propDisponibles').textContent = data.data.propiedades.disponibles;
+                document.getElementById('propAlquiladas').textContent = data.data.propiedades.alquilados;
+            }
+        } catch (error) {
+            console.error('Error al actualizar métricas:', error);
+        }
+    }
+    
+    // Actualizar métricas cada 30 segundos
+    setInterval(actualizarMetricas, 30000);
+</script>
+
+{% endblock %}

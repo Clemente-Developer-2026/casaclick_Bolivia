@@ -1,6 +1,6 @@
 <nav class="navbar navbar-expand-lg sticky-top">
     <div class="container">
-        <a class="navbar-brand" href="#">
+        <a class="navbar-brand" href="{{ url_for('main.index') }}">
             <i class="bi bi-bank2 me-2" style="color:#e25c0c;"></i>
             Gestión<span class="text-orange">Core</span>
         </a>
@@ -12,51 +12,75 @@
         <div class="collapse navbar-collapse" id="navbarMain">
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center gap-2">
 
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Inicio</a>
-                </li>
-
-                {% if session.get('rol') == 'admin' %}
+                {# Solo mostrar "Inicio" si NO está en el dashboard #}
+                {% if request.endpoint != 'main.dashboard' %}
                     <li class="nav-item">
-                        <a class="nav-link" href="/usuarios">Usuarios</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/reportes">Reportes</a>
+                        <a class="nav-link" href="{{ url_for('main.index') }}">Inicio</a>
                     </li>
                 {% endif %}
 
-                {% if session.get('rol') == 'vendedor' %}
+                {# Links para vendedor #}
+                {% if current_user.is_authenticated and current_user.rol.lower() == 'vendedor' %}
                     <li class="nav-item">
-                        <a class="nav-link" href="/mis-propiedades">Mis Propiedades</a>
+                        <a class="nav-link" href="{{ url_for('vendedor.index') }}">Mis Propiedades</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/publicar-propiedad">Publicar</a>
-                    </li>
-                {% endif %}
-
-                {% if session.get('rol') == 'cliente' %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="/propiedades">Propiedades</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/favoritos">Favoritos</a>
+                        <a class="nav-link" href="{{ url_for('vendedor.publicar') }}">Publicar</a>
                     </li>
                 {% endif %}
 
-                <li class="nav-item">
-                    <a class="nav-link" href="#caracteristicas">Características</a>
-                </li>
+                {# Links para cliente #}
+                {% if current_user.is_authenticated and current_user.rol.lower() == 'cliente' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('cliente.index') }}">Propiedades</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('cliente.favoritos') }}">Favoritos</a>
+                    </li>
+                {% endif %}
 
-                <li class="nav-item">
-                    <a class="nav-link" href="#como-funciona">Cómo funciona</a>
-                </li>
+                {# Links de características SOLO para usuarios NO autenticados #}
+                {# CAMBIO: ya no se muestran para administradores ni vendedores ni clientes #}
+                {% if not current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="#caracteristicas">Características</a>
+                    </li>
 
-                <li class="nav-item">
-                    <a class="nav-link" href="#contacto">Contacto</a>
-                </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#como-funciona">Cómo funciona</a>
+                    </li>
 
-                {% if not session.get('id_usuario') %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contacto">Contacto</a>
+                    </li>
+                {% endif %}
 
+                {# Botones de autenticación #}
+                {% if current_user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i>
+                            {{ current_user.nombre }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-person"></i> Mi perfil</a></li>
+                            
+                            {# Mostrar enlace al dashboard solo para administradores #}
+                            {% if current_user.rol.lower() == 'administrador' %}
+                                <li><a class="dropdown-item" href="{{ url_for('main.dashboard') }}">
+                                    <i class="bi bi-speedometer2"></i> Dashboard
+                                </a></li>
+                            {% endif %}
+                            
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
+                                    <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                {% else %}
                     <li class="nav-item ms-lg-2">
                         <button class="btn btn-outline-sobre"
                                 data-bs-toggle="modal"
@@ -74,20 +98,6 @@
                             Registrarse
                         </button>
                     </li>
-
-                {% else %}
-
-                    <li class="nav-item">
-                        <span class="nav-link">
-                            <i class="bi bi-person-circle"></i>
-                            {{ session.get('nombre') }}
-                        </span>
-                    </li>
-
-                    <li class="nav-item">
-                        <a href="{{ url_for('logout') }}" class="btn btn-outline-sobre"><i class="bi bi-box-arrow-right"></i>Salir</a>
-                    </li>
-
                 {% endif %}
 
             </ul>

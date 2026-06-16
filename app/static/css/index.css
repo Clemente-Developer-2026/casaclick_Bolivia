@@ -284,6 +284,790 @@ body {
     color: #e25c0c;
 }
 
+/* Layout sin sombras excesivas, bordes controlados */
+.sidebar {
+    background-color: #ffffff;
+    border-right: 1px solid #e2e8f0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+/* Menú lateral plano, estilo core bancario */
+.nav-link-custom {
+    display: flex;
+    align-items: center;
+    padding: 0.65rem 1rem;
+    margin: 0.125rem 0;
+    color: #2c3e50;
+    font-weight: 500;
+    font-size: 0.85rem;
+    border-radius: 0px;
+    transition: all 0.1s ease;
+    border-left: 3px solid transparent;
+}
+
+.nav-link-custom i {
+    width: 1.6rem;
+    font-size: 1.1rem;
+    color: #5a6e7c;
+}
+
+.nav-link-custom:hover {
+    background-color: #f7f9fc;
+    color: #d95b0e;
+    border-left-color: #d95b0e;
+}
+
+.nav-link-custom.active {
+    background-color: #fef5ee;
+    color: #d95b0e;
+    border-left-color: #d95b0e;
+    font-weight: 600;
+}
+
+.nav-link-custom.active i {
+    color: #d95b0e;
+}
+
+/* Top bar estilo dashboard ejecutivo */
+.top-bar {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0.75rem 1.5rem;
+}
+
+/* Tarjetas de métricas (sobrias, sin sombras pesadas) */
+.metric-card {
+    background-color: #ffffff;
+    border: 1px solid #e9edf2;
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    transition: 0.05s linear;
+}
+
+.metric-title {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #5a6e7c;
+}
+
+.metric-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1e2f3e;
+    line-height: 1.2;
+}
+
+.metric-trend {
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+/* Tablas profesionales (bordes horizontales, estilo ERP) */
+.table-professional {
+    width: 100%;
+    font-size: 0.8rem;
+    border-collapse: collapse;
+}
+
+.table-professional thead th {
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    border-top: none;
+    padding: 0.9rem 0.75rem;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.table-professional tbody td {
+    padding: 0.85rem 0.75rem;
+    border-bottom: 1px solid #edf2f7;
+    vertical-align: middle;
+    color: #2d3e4f;
+}
+
+.table-professional tbody tr:hover {
+    background-color: #fefcf9;
+}
+
+/* Badges planos (sin bordes redondeados exagerados) */
+.badge-flat {
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.25rem 0.6rem;
+}
+
+.badge-success-flat {
+    background-color: #e6f4ea;
+    color: #1e6f3f;
+}
+
+.badge-warning-flat {
+    background-color: #fff0e0;
+    color: #c65d0e;
+}
+
+.badge-neutral-flat {
+    background-color: #f0f2f5;
+    color: #4a627a;
+}
+
+/* Botón primario naranja sobrio */
+.btn-primary-sobre {
+    background-color: #e25c0c;
+    border: none;
+    font-weight: 500;
+    font-size: 0.75rem;
+    padding: 0.4rem 1rem;
+    border-radius: 4px;
+    transition: background 0.15s;
+}
+
+.btn-primary-sobre:hover {
+    background-color: #c24d07;
+}
+
+.btn-outline-sobre {
+    border: 1px solid #e2e8f0;
+    background: white;
+    color: #2c3e50;
+    font-size: 0.75rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 4px;
+    transition: all 0.15s;
+}
+
+.btn-outline-sobre:hover {
+    border-color: #e25c0c;
+    color: #e25c0c;
+    background-color: #fffaf5;
+}
+
+/* Estilos para el modal (coherentes con diseño profesional) */
+.modal-content {
+    border-radius: 6px;
+    border: 1px solid #e9edf2;
+    box-shadow: none;
+}
+
+.modal-header {
+    border-bottom: 1px solid #e9edf2;
+    background-color: #ffffff;
+    padding: 1rem 1.2rem;
+}
+
+.modal-footer {
+    border-top: 1px solid #e9edf2;
+    padding: 1rem 1.2rem;
+}
+
+.modal-title {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.form-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: #5a6e7c;
+    margin-bottom: 0.3rem;
+}
+
+.form-control,
+.form-select {
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+    font-size: 0.85rem;
+    padding: 0.45rem 0.75rem;
+    transition: 0.1s;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #e25c0c;
+    box-shadow: 0 0 0 2px rgba(226, 92, 12, 0.1);
+    outline: none;
+}
+
+/* Gráfico simple (barras estilo financiero) */
+.simple-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.simple-bar-item {
+    flex: 1;
+    text-align: center;
+}
+
+.bar-column {
+    background-color: #e25c0c;
+    width: 100%;
+    border-radius: 2px;
+    min-height: 4px;
+    transition: 0.1s;
+}
+
+.bar-label {
+    font-size: 0.65rem;
+    color: #7e95ab;
+    margin-top: 0.5rem;
+}
+
+/* Utilidades */
+.text-orange-sobre {
+    color: #e25c0c !important;
+}
+
+hr {
+    margin: 1rem 0;
+    border-color: #e9edf2;
+}
+
+.card-plain {
+    background: white;
+    border: 1px solid #e9edf2;
+    border-radius: 6px;
+    padding: 0;
+}
+
+.card-header-plain {
+    padding: 1rem 1.2rem;
+    background: white;
+    border-bottom: 1px solid #e9edf2;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        left: -260px;
+        transition: left 0.2s;
+        z-index: 1050;
+        width: 260px;
+    }
+
+    .sidebar.show {
+        left: 0;
+    }
+
+    .metric-value {
+        font-size: 1.4rem;
+    }
+}
+
+/* Badges adicionales */
+.badge-danger-flat {
+    background: #fee2e2;
+    color: #dc2626;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.badge-primary-flat {
+    background: #dbeafe;
+    color: #2563eb;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.badge-info-flat {
+    background: #e0f2fe;
+    color: #0284c7;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+/* Colores corporativos */
+.bg-orange-sobre {
+    background-color: #e25c0c !important;
+}
+
+.text-orange-sobre {
+    color: #e25c0c !important;
+}
+
+/* Botones */
+.btn-primary-sobre {
+    background-color: #e25c0c;
+    border-color: #e25c0c;
+    color: white;
+}
+
+.btn-primary-sobre:hover {
+    background-color: #c44e0a;
+    border-color: #c44e0a;
+    color: white;
+}
+
+.btn-outline-sobre {
+    border-color: #e25c0c;
+    color: #e25c0c;
+}
+
+.btn-outline-sobre:hover {
+    background-color: #e25c0c;
+    color: white;
+}
+
+/* Sidebar */
+.nav-link-custom.active {
+    background-color: #e25c0c;
+    color: white;
+}
+
+.nav-link-custom.active i {
+    color: white;
+}
+
+/* Estilos adicionales */
+.badge-danger-flat {
+    background: #fee2e2;
+    color: #dc2626;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.badge-primary-flat {
+    background: #dbeafe;
+    color: #2563eb;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.badge-info-flat {
+    background: #e0f2fe;
+    color: #0284c7;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.badge-warning-flat {
+    background: #fef3c7;
+    color: #d97706;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.bg-orange-sobre {
+    background-color: #e25c0c;
+}
+
+.text-orange-sobre {
+    color: #e25c0c;
+}
+
+.btn-primary-sobre {
+    background-color: #e25c0c;
+    border-color: #e25c0c;
+    color: white;
+}
+
+.btn-primary-sobre:hover {
+    background-color: #c44e0a;
+    border-color: #c44e0a;
+    color: white;
+}
+
+.btn-outline-sobre {
+    border-color: #e25c0c;
+    color: #e25c0c;
+}
+
+.btn-outline-sobre:hover {
+    background-color: #e25c0c;
+    color: white;
+}
+
+.nav-link-custom.active {
+    background-color: #e25c0c;
+    color: white;
+}
+
+.nav-link-custom.active i {
+    color: white;
+}
+
+.table-professional {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.table-professional th {
+    background: #f8f9fa;
+    color: #495057;
+    font-weight: 600;
+    padding: 12px 16px;
+    border-bottom: 2px solid #e9ecef;
+    text-align: left;
+}
+
+.table-professional td {
+    padding: 10px 16px;
+    border-bottom: 1px solid #e9ecef;
+    vertical-align: middle;
+}
+
+.table-professional tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.metric-card {
+    background: white;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-left: 3px solid #e25c0c;
+}
+
+.metric-title {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-bottom: 4px;
+}
+
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a2c3e;
+}
+
+.metric-trend {
+    font-size: 0.75rem;
+    margin-top: 4px;
+}
+
+.card-plain {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.card-header-plain {
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    font-weight: 600;
+    color: #1a2c3e;
+    font-size: 0.9rem;
+}
+
+.simple-bars {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    height: 150px;
+    padding: 10px 0;
+}
+
+.simple-bar-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+}
+
+.bar-column {
+    width: 30px;
+    background: #e25c0c;
+    border-radius: 4px 4px 0 0;
+    min-height: 5px;
+    transition: height 0.3s ease;
+}
+
+.bar-label {
+    margin-top: 8px;
+    font-size: 0.7rem;
+    color: #6c757d;
+}
+
+.sidebar {
+    background: #ffffff;
+    border-right: 1px solid #e9ecef;
+    min-height: 100vh;
+    width: 240px;
+}
+
+.top-bar {
+    background: white;
+    padding: 12px 24px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.nav-link-custom {
+    color: #1a2c3e;
+    padding: 10px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s;
+}
+
+.nav-link-custom:hover {
+    background: #f8f9fa;
+    color: #e25c0c;
+}
+
+.nav-link-custom i {
+    font-size: 1.1rem;
+    width: 20px;
+    text-align: center;
+}
+
+.nav-tabs .nav-link {
+    color: #1a2c3e;
+}
+
+.nav-tabs .nav-link.active {
+    color: #e25c0c;
+    border-bottom-color: #e25c0c;
+}
+
+.nav-tabs .nav-link:hover {
+    border-color: #e25c0c;
+    color: #e25c0c;
+}
+
+
+
+/* Top bar */
+.top-bar {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0.75rem 1.5rem;
+}
+
+/* Botones */
+.btn-primary-sobre {
+    background-color: #e25c0c;
+    border: none;
+    font-weight: 500;
+    font-size: 0.75rem;
+    padding: 0.45rem 1.2rem;
+    border-radius: 6px;
+    transition: all 0.15s;
+}
+
+.btn-primary-sobre:hover {
+    background-color: #c24d07;
+    transform: translateY(-1px);
+}
+
+.btn-outline-sobre {
+    border: 1px solid #e2e8f0;
+    background: white;
+    color: #2c3e50;
+    font-size: 0.75rem;
+    padding: 0.45rem 1rem;
+    border-radius: 6px;
+    transition: all 0.15s;
+}
+
+.btn-outline-sobre:hover {
+    border-color: #e25c0c;
+    color: #e25c0c;
+    background-color: #fffaf5;
+}
+
+.btn-danger-sobre {
+    background-color: #dc2626;
+    border: none;
+    font-weight: 500;
+    font-size: 0.7rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 4px;
+    color: white;
+}
+
+.btn-danger-sobre:hover {
+    background-color: #b91c1c;
+}
+
+/* Tarjetas de métricas */
+.metric-card {
+    background-color: #ffffff;
+    border: 1px solid #e9edf2;
+    border-radius: 10px;
+    padding: 1rem 1.2rem;
+    transition: all 0.15s;
+}
+
+.metric-card:hover {
+    border-color: #e25c0c;
+}
+
+.metric-title {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #5a6e7c;
+}
+
+.metric-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1e2f3e;
+    line-height: 1.2;
+}
+
+/* Tarjetas de productos */
+.product-card {
+    background: white;
+    border: 1px solid #e9edf2;
+    border-radius: 10px;
+    transition: all 0.15s ease;
+    height: 100%;
+}
+
+.product-card:hover {
+    border-color: #e25c0c;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px -12px rgba(0, 0, 0, 0.1);
+}
+
+.product-img {
+    background-color: #f8fafc;
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid #e9edf2;
+    color: #a0b3c4;
+    font-size: 3rem;
+}
+
+.product-body {
+    padding: 1rem;
+}
+
+.product-title {
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 0.3rem;
+    color: #1e2f3e;
+}
+
+.product-id {
+    font-size: 0.65rem;
+    color: #7e95ab;
+    font-family: monospace;
+}
+
+.product-price {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #e25c0c;
+}
+
+.badge-flat {
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 0.2rem 0.5rem;
+}
+
+.badge-success-flat {
+    background-color: #e6f4ea;
+    color: #1e6f3f;
+}
+
+.badge-warning-flat {
+    background-color: #fff0e0;
+    color: #c65d0e;
+}
+
+/* Filtros */
+.filter-bar {
+    background: white;
+    border: 1px solid #e9edf2;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+}
+
+.form-control,
+.form-select {
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    font-size: 0.85rem;
+    padding: 0.45rem 0.75rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #e25c0c;
+    box-shadow: 0 0 0 2px rgba(226, 92, 12, 0.1);
+    outline: none;
+}
+
+/* Modales */
+.modal-content {
+    border-radius: 12px;
+    border: 1px solid #e9edf2;
+}
+
+.modal-header {
+    border-bottom: 1px solid #e9edf2;
+    background-color: #ffffff;
+}
+
+.modal-footer {
+    border-top: 1px solid #e9edf2;
+}
+
+.form-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: #5a6e7c;
+    margin-bottom: 0.3rem;
+}
+
+.text-orange-sobre {
+    color: #e25c0c !important;
+}
+
+hr {
+    margin: 1rem 0;
+    border-color: #e9edf2;
+}
+
+
+
+
+
 @media (max-width: 768px) {
     .hero h1 {
         font-size: 2.2rem;

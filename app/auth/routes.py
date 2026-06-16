@@ -76,7 +76,7 @@ def login():
     if usuario.rol.lower() == "administrador":
         dashboard = "/dashboard"
     elif usuario.rol.lower() == "vendedor":
-        dashboard = "/vendedor"
+        dashboard = "/vendedor/vendedor"
     elif usuario.rol.lower() == "cliente":
         dashboard = "/cliente/cliente"
     else:
