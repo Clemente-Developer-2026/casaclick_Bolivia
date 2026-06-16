@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Historial de Auditoría</h1>
+
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Usuario</th>
+                    <th>Tabla</th>
+                    <th>Registro ID</th>
+                    <th>Acción</th>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>IP</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for audit in auditorias %}
+                <tr>
+                    <td>{{ audit.id_auditoria }}</td>
+                    <td>{{ audit.nombre_usuario }}</td>
+                    <td>{{ audit.tabla_afectada }}</td>
+                    <td>{{ audit.registro_id }}</td>
+                    <td>
+                        <span class="badge bg-{% if audit.accion == 'INSERT' %}success
+                                           {% elif audit.accion == 'UPDATE' %}warning
+                                           {% else %}danger{% endif %}">
+                            {{ audit.accion }}
+                        </span>
+                    </td>
+                    <td>{{ audit.fecha_actividad }}</td>
+                    <td>{{ audit.hora_actividad }}</td>
+                    <td>{{ audit.ip_usuario or 'N/A' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

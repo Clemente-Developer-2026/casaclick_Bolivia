@@ -1,11 +1,129 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <h1>Bienvenido cliente</h1>
-</body>
-</html>
+{% extends 'base.html' %}
+{% block title %} Cliente {% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0 d-flex flex-column min-vh-100">
+    <div class="row g-0 flex-grow-1">
+        <!-- SIDEBAR CLIENTE -->
+        <div class="col-auto sidebar" id="sidebarMenu">
+            <div class="d-flex flex-column h-100 p-3 pt-4">
+                <div class="mb-4 pb-2">
+                    <div class="fw-bold fs-5" style="color:#1a2c3e;">
+                        <i class="bi bi-bag-heart me-2" style="color:#e25c0c;"></i> 
+                        <span style="letter-spacing:-0.2px;">Mi<span class="text-orange-sobre">Tienda</span></span>
+                    </div>
+                    <div class="small text-secondary mt-1">Panel · Cliente</div>
+                </div>
+                <nav class="nav flex-column">
+                    <a href="#" class="nav-link-custom active" id="catalogoLink"><i class="bi bi-grid-3x3-gap-fill"></i> Catálogo</a>
+                    <a href="#" class="nav-link-custom" id="misPedidosLink"><i class="bi bi-receipt"></i> Mis pedidos</a>
+                    <a href="#" class="nav-link-custom" id="miPerfilLink"><i class="bi bi-person"></i> Mi perfil</a>
+                </nav>
+                <hr class="my-3">
+                <div class="small text-secondary mt-auto">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="avatar-cliente">AM</div>
+                        <div>
+                            <div class="fw-semibold">Ana Martínez</div>
+                            <div>Cliente</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="col bg-light" style="background-color: #eef2f5 !important;">
+            <!-- TOP BAR -->
+            <div class="top-bar d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-outline-sobre d-md-none" id="toggleSidebarBtn"><i class="bi bi-list"></i></button>
+                    <h5 class="mb-0 fw-semibold" style="font-size: 1rem;" id="pageTitle">Catálogo / <span class="text-orange-sobre">Productos disponibles</span></h5>
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                    <button class="btn btn-outline-sobre position-relative" id="cartBtn">
+                        <i class="bi bi-cart3"></i>
+                        <span id="cartCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-orange-sobre" style="background-color:#e25c0c; font-size:0.6rem;">0</span>
+                    </button>
+                    <span class="small text-secondary"><i class="bi bi-calendar3"></i> <span id="fechaActual"></span></span>
+                    <button class="btn btn-outline-sobre btn-sm" id="logoutBtn">
+                        <i class="bi bi-box-arrow-right"></i> Salir
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-3 p-md-4" id="contenidoDinamico">
+                <!-- Contenido dinámico cargado por JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CARRITO OFF CANVAS -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="cartOffcanvas">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title"><i class="bi bi-cart3 me-2 text-orange-sobre"></i>Mi carrito</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body" id="cartItems">
+        <div class="text-center py-5 text-secondary">
+            <i class="bi bi-cart3" style="font-size: 3rem;"></i>
+            <p class="mt-2">Tu carrito está vacío</p>
+        </div>
+    </div>
+    <div class="offcanvas-footer p-3 border-top" id="cartFooter" style="display: none;">
+        <div class="d-flex justify-content-between mb-2">
+            <span>Subtotal:</span>
+            <span class="fw-bold" id="cartSubtotal">$0.00</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+            <span>Envío:</span>
+            <span>$4.99</span>
+        </div>
+        <hr>
+        <div class="d-flex justify-content-between mb-3">
+            <span class="fw-bold">Total:</span>
+            <span class="fw-bold text-orange-sobre" id="cartTotal">$0.00</span>
+        </div>
+        <button class="btn btn-primary-sobre w-100" id="checkoutBtn">Proceder al pago</button>
+    </div>
+</div>
+
+<!-- MODAL PAGO -->
+<div class="modal fade" id="pagoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-credit-card me-2 text-orange-sobre"></i>Finalizar compra</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Método de pago</label>
+                    <select class="form-select" id="metodoPago">
+                        <option value="tarjeta">Tarjeta de crédito/débito</option>
+                        <option value="paypal">PayPal</option>
+                        <option value="transferencia">Transferencia bancaria</option>
+                    </select>
+                </div>
+                <div class="mb-3" id="tarjetaInfo">
+                    <label class="form-label">Número de tarjeta</label>
+                    <input type="text" class="form-control" placeholder="**** **** **** ****">
+                    <div class="row mt-2">
+                        <div class="col-6"><input type="text" class="form-control" placeholder="MM/AA"></div>
+                        <div class="col-6"><input type="text" class="form-control" placeholder="CVV"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Dirección de envío</label>
+                    <textarea class="form-control" rows="2" id="direccionEnvio">C/ Principal 123, 28001 Madrid</textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-sobre" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success-sobre" id="confirmarPagoBtn">Confirmar pago</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
