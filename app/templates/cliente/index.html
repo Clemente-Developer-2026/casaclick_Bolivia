@@ -1,0 +1,446 @@
+{% extends 'base.html' %}
+{% block title %} Propiedades - CasaClick {% endblock %}
+
+{% block content %}
+
+<div class="container-fluid p-0 d-flex flex-column min-vh-100">
+    <div class="row g-0 flex-grow-1">
+        <!-- SIDEBAR CLIENTE -->
+        <div class="col-auto sidebar" id="sidebarMenu">
+            <div class="d-flex flex-column h-100 p-3 pt-4">
+                <div class="mb-4 pb-2">
+                    <div class="fw-bold fs-5" style="color:#1a2c3e;">
+                        <i class="bi bi-house-heart me-2" style="color:#e25c0c;"></i> 
+                        <span style="letter-spacing:-0.2px;">Casa<span class="text-orange-sobre">Click</span></span>
+                    </div>
+                    <div class="small text-secondary mt-1">Panel · Cliente</div>
+                </div>
+                <nav class="nav flex-column">
+                    <a href="{{ url_for('cliente.index') }}" class="nav-link-custom active"><i class="bi bi-grid-3x3-gap-fill"></i> Propiedades</a>
+                    <a href="{{ url_for('cliente.perfil') }}" class="nav-link-custom"><i class="bi bi-person-circle"></i> Mi perfil</a>
+                </nav>
+                <hr class="my-3">
+                <div class="small text-secondary mt-auto">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-person-circle fs-5"></i>
+                        <div>
+                            <div class="fw-semibold">{{ current_user.nombre }}</div>
+                            <div>{{ current_user.rol|capitalize }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="col bg-light" style="background-color: #eef2f5 !important;">
+            <!-- TOP BAR -->
+            <div class="top-bar d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-outline-sobre d-md-none" id="toggleSidebarBtn"><i class="bi bi-list"></i></button>
+                    <h5 class="mb-0 fw-semibold" style="font-size: 1rem;">Propiedades / <span class="text-orange-sobre">Encuentra tu hogar</span></h5>
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                    <span class="small text-secondary"><i class="bi bi-calendar3"></i> {{ datetime.now().strftime('%d %b %Y') }}</span>
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-sobre btn-sm">
+                        <i class="bi bi-box-arrow-right"></i> Salir
+                    </a>
+                </div>
+            </div>
+
+            <div class="p-3 p-md-4">
+                <!-- MÉTRICAS -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4 col-6">
+                        <div class="metric-card">
+                            <div class="metric-title">Propiedades disponibles</div>
+                            <div class="metric-value">{{ total_propiedades }}</div>
+                            <div class="small text-success"><i class="bi bi-arrow-up-short"></i> en venta</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-6">
+                        <div class="metric-card" style="border-left-color: #17a2b8;">
+                            <div class="metric-title">Vendedores activos</div>
+                            <div class="metric-value">{{ total_vendedores }}</div>
+                            <div class="small text-secondary">registrados</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-6">
+                        <div class="metric-card" style="border-left-color: #28a745;">
+                            <div class="metric-title">Bienvenido</div>
+                            <div class="metric-value" style="font-size: 1rem;">{{ current_user.nombre }}</div>
+                            <div class="small text-secondary">explora propiedades</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FILTROS -->
+                <div class="filter-bar mb-4">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label class="form-label mb-1">Buscar</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0" style="border-color:#e2e8f0;"><i class="bi bi-search text-secondary"></i></span>
+                                <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Buscar propiedades...">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">Tipo</label>
+                            <select class="form-select" id="typeFilter">
+                                <option value="all">Todos</option>
+                                <option value="casa">Casa</option>
+                                <option value="departamento">Departamento</option>
+                                <option value="terreno">Terreno</option>
+                                <option value="local">Local comercial</option>
+                                <option value="oficina">Oficina</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">Departamento</label>
+                            <select class="form-select" id="departamentoFilter">
+                                <option value="all">Todos</option>
+                                {% for dep in departamentos %}
+                                    <option value="{{ dep.id_departamento }}">{{ dep.departamento }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-outline-sobre w-100" id="resetFiltersBtn">
+                                <i class="bi bi-arrow-repeat"></i> Resetear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTADOR -->
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <span class="small text-secondary"><i class="bi bi-box-seam"></i> <span id="productCount">{{ propiedades|length }}</span> propiedades encontradas</span>
+                </div>
+
+                <!-- GRID DE PROPIEDADES CON CARRUSEL -->
+                <div class="row g-4" id="propertiesGrid">
+                    {% for propiedad in propiedades %}
+                    <div class="col-md-6 col-lg-4 col-xl-3" data-propiedad-id="{{ propiedad.id_propiedad }}">
+                        <div class="product-card">
+                            <!-- CARRUSEL DE IMÁGENES -->
+                            <div class="product-img">
+                                {% if propiedad.imagenes and propiedad.imagenes|length > 0 %}
+                                    <div id="carousel-{{ propiedad.id_propiedad }}" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
+                                        <div class="carousel-inner">
+                                            {% for imagen in propiedad.imagenes %}
+                                                <div class="carousel-item {% if loop.first %}active{% endif %}">
+                                                    <img src="{{ url_for('vendedor.serve_upload', filename=imagen.imagen) }}" 
+                                                         alt="{{ propiedad.titulo }}" 
+                                                         style="width: 100%; height: 200px; object-fit: cover;">
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                        {% if propiedad.imagenes|length > 1 %}
+                                            <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ propiedad.id_propiedad }}" data-bs-slide="prev">
+                                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                                <span class="visually-hidden">Anterior</span>
+                                            </button>
+                                            <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ propiedad.id_propiedad }}" data-bs-slide="next">
+                                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                                <span class="visually-hidden">Siguiente</span>
+                                            </button>
+                                            <div class="carousel-indicators" style="bottom: 5px;">
+                                                {% for imagen in propiedad.imagenes %}
+                                                    <button type="button" data-bs-target="#carousel-{{ propiedad.id_propiedad }}" 
+                                                            data-bs-slide-to="{{ loop.index0 }}" 
+                                                            class="{% if loop.first %}active{% endif %}" 
+                                                            style="width: 8px; height: 8px; border-radius: 50%; margin: 0 3px;"></button>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <div style="display: flex; align-items: center; justify-content: center; height: 200px; background: #f8f9fa;">
+                                        <i class="bi bi-house fs-1 text-secondary" style="font-size: 3rem;"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="product-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <div class="product-title">{{ propiedad.titulo|truncate(25) }}</div>
+                                        <div class="product-id">PR-{{ propiedad.id_propiedad }}</div>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-danger" style="padding:0.2rem 0.5rem;" onclick="toggleFavorito({{ propiedad.id_propiedad }})">
+                                        <i class="bi bi-heart"></i>
+                                    </button>
+                                </div>
+                                <div class="product-price">${{ "%.2f"|format(propiedad.precio) }}</div>
+                                <div class="mt-2">
+                                    <span class="badge-flat badge-success-flat">
+                                        <i class="bi bi-check-circle-fill me-1"></i> Disponible
+                                    </span>
+                                </div>
+                                <div class="mt-2"><small class="text-secondary"><i class="bi bi-tag"></i> {{ propiedad.tipo|capitalize }}</small></div>
+                                <div class="mt-2"><small class="text-secondary"><i class="bi bi-rulers"></i> {{ propiedad.superficie }} m²</small></div>
+                                <div class="mt-2"><small class="text-secondary"><i class="bi bi-person"></i> {{ propiedad.usuario.nombre if propiedad.usuario else 'N/A' }}</small></div>
+                                <div class="mt-2"><small class="text-muted">{{ propiedad.descripcion|truncate(50) }}</small></div>
+                                <div class="mt-2 pt-2 border-top">
+                                    <a href="{{ url_for('cliente.ver_propiedad', id_propiedad=propiedad.id_propiedad) }}" class="btn btn-primary-sobre btn-sm w-100">
+                                        <i class="bi bi-eye"></i> Ver detalles
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-12 text-center py-5">
+                        <i class="bi bi-inbox" style="font-size:3rem; color:#cbd5e1;"></i>
+                        <p class="mt-2 text-secondary">No hay propiedades disponibles en este momento</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Datos de propiedades
+    const propiedades = {{ propiedades_json|tojson|safe }};
+
+    // Sidebar toggle
+    const sidebar = document.getElementById('sidebarMenu');
+    const toggleBtn = document.getElementById('toggleSidebarBtn');
+    if(toggleBtn && sidebar) {
+        toggleBtn.addEventListener('click', () => sidebar.classList.toggle('show'));
+        window.addEventListener('click', (e) => {
+            if(window.innerWidth < 768 && sidebar.classList.contains('show') && !sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
+                sidebar.classList.remove('show');
+            }
+        });
+    }
+
+    // Función para toggle favoritos (placeholder)
+    function toggleFavorito(id) {
+        alert('Función de favoritos en desarrollo');
+    }
+
+    // Filtros
+    function filterProperties() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const typeFilter = document.getElementById('typeFilter').value;
+        const deptoFilter = document.getElementById('departamentoFilter').value;
+        
+        const cards = document.querySelectorAll('[data-propiedad-id]');
+        let visibleCount = 0;
+        
+        cards.forEach(card => {
+            const titulo = card.querySelector('.product-title')?.textContent?.toLowerCase() || '';
+            const tipo = card.querySelector('[class*="bi-tag"]')?.parentElement?.textContent?.toLowerCase() || '';
+            
+            // Obtener el ID de la propiedad del data attribute
+            const propId = card.dataset.propiedadId;
+            const prop = propiedades.find(p => p.id_propiedad == propId);
+            
+            const matchSearch = titulo.includes(searchTerm);
+            const matchType = typeFilter === 'all' || tipo.includes(typeFilter.toLowerCase());
+            const matchDepto = deptoFilter === 'all' || (prop && prop.id_departamento == deptoFilter);
+            
+            if (matchSearch && matchType && matchDepto) {
+                card.style.display = '';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        
+        document.getElementById('productCount').textContent = visibleCount;
+    }
+
+    document.getElementById('searchInput')?.addEventListener('input', filterProperties);
+    document.getElementById('typeFilter')?.addEventListener('change', filterProperties);
+    document.getElementById('departamentoFilter')?.addEventListener('change', filterProperties);
+    document.getElementById('resetFiltersBtn')?.addEventListener('click', function() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('typeFilter').value = 'all';
+        document.getElementById('departamentoFilter').value = 'all';
+        filterProperties();
+    });
+</script>
+
+<style>
+    /* Estilos para el cliente */
+    .product-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    .product-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .product-img {
+        background: #f8f9fa;
+        min-height: 200px;
+        overflow: hidden;
+    }
+    .product-img .carousel {
+        height: 200px;
+        overflow: hidden;
+    }
+    .product-img .carousel-inner {
+        height: 100%;
+    }
+    .product-img .carousel-item {
+        height: 100%;
+    }
+    .product-img .carousel-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .carousel-control-prev,
+    .carousel-control-next {
+        width: 10%;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    .product-card:hover .carousel-control-prev,
+    .product-card:hover .carousel-control-next {
+        opacity: 0.8;
+    }
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+        width: 20px;
+        height: 20px;
+        background-color: rgba(0,0,0,0.5);
+        border-radius: 50%;
+        padding: 10px;
+        background-size: 60%;
+    }
+    .carousel-indicators {
+        margin-bottom: 0;
+    }
+    .carousel-indicators button {
+        width: 8px !important;
+        height: 8px !important;
+        border-radius: 50%;
+        margin: 0 3px;
+        background-color: rgba(255,255,255,0.6);
+        border: none;
+    }
+    .carousel-indicators .active {
+        background-color: #e25c0c;
+    }
+    .product-body {
+        padding: 12px 16px;
+        flex: 1;
+    }
+    .product-title {
+        font-weight: 600;
+        color: #1a2c3e;
+        font-size: 0.95rem;
+    }
+    .product-id {
+        font-size: 0.7rem;
+        color: #6c757d;
+    }
+    .product-price {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #e25c0c;
+    }
+    .badge-flat {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        display: inline-block;
+    }
+    .badge-success-flat {
+        background: #d4edda;
+        color: #155724;
+    }
+    .metric-card {
+        background: white;
+        padding: 16px;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border-left: 3px solid #e25c0c;
+    }
+    .metric-title {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-bottom: 4px;
+    }
+    .metric-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1a2c3e;
+    }
+    .nav-link-custom {
+        color: #1a2c3e;
+        padding: 10px 16px;
+        border-radius: 6px;
+        text-decoration: none;
+        margin-bottom: 2px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.2s;
+    }
+    .nav-link-custom:hover {
+        background: #f8f9fa;
+        color: #e25c0c;
+    }
+    .nav-link-custom.active {
+        background: #e25c0c;
+        color: white;
+    }
+    .nav-link-custom.active i {
+        color: white;
+    }
+    .sidebar {
+        background: #ffffff;
+        border-right: 1px solid #e9ecef;
+        min-height: 100vh;
+        width: 240px;
+    }
+    .top-bar {
+        background: white;
+        padding: 12px 24px;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .btn-primary-sobre {
+        background-color: #e25c0c;
+        border-color: #e25c0c;
+        color: white;
+    }
+    .btn-primary-sobre:hover {
+        background-color: #c44e0a;
+        border-color: #c44e0a;
+        color: white;
+    }
+    .btn-outline-sobre {
+        border-color: #e25c0c;
+        color: #e25c0c;
+    }
+    .btn-outline-sobre:hover {
+        background-color: #e25c0c;
+        color: white;
+    }
+    .text-orange-sobre {
+        color: #e25c0c;
+    }
+    .filter-bar {
+        background: white;
+        padding: 16px;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+</style>
+
+{% endblock %}

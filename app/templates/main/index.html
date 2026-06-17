@@ -1,9 +1,11 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<!-- HERO SECTION -->
-<section class="hero">
-    <div class="container">
+<!-- HERO SECTION con imagen de fondo -->
+<section class="hero" style="background-image: url('{{ url_for('static', filename='images/') }}'); background-size: cover; background-position: center; position: relative;">
+    <!-- Overlay para mejorar legibilidad -->
+    <div class="hero-overlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.85);"></div>
+    <div class="container" style="position: relative; z-index: 1;">
         <div class="row align-items-center">
             <div class="col-lg-6">
                 <h1>Gestiona tu negocio de forma <span>profesional</span> y eficiente</h1>
@@ -20,16 +22,17 @@
             </div>
             <div class="col-lg-6 d-none d-lg-block">
                 <div class="text-center">
-                    <img src="" alt="Dashboard preview" class="img-fluid rounded-3 shadow-sm" style="max-width: 100%;">
+                    <img src="{{ url_for('static', filename='images/4k.png') }}" alt="Dashboard preview" class="img-fluid rounded-3 shadow-sm" style="max-width: 100%;">
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- CARACTERÍSTICAS -->
-<section id="caracteristicas" class="py-5">
-    <div class="container">
+<!-- CARACTERÍSTICAS con imagen de fondo sutil -->
+<section id="caracteristicas" class="py-5" style="background-image: url('{{ url_for('static', filename='images/fondo.png') }}'); background-size: cover; background-position: center; background-attachment: fixed; position: relative;">
+    <div class="features-overlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255, 255, 255, 0.308);"></div>
+    <div class="container" style="position: relative; z-index: 1;">
         <div class="text-center mb-5">
             <h2 class="fw-bold mb-3">Todo lo que necesitas en un solo lugar</h2>
             <p class="text-secondary">Herramientas diseñadas para optimizar tu negocio</p>
@@ -82,9 +85,10 @@
     </div>
 </section>
 
-<!-- STATS -->
-<section class="stats-section">
-    <div class="container">
+<!-- STATS con imagen de fondo -->
+<section class="stats-section" style="background-image: url('{{ url_for('static', filename='images/stats-bg.jpg') }}'); background-size: cover; background-position: center; background-attachment: fixed; position: relative;">
+    <div class="stats-overlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(248, 250, 252, 0.92);"></div>
+    <div class="container" style="position: relative; z-index: 1;">
         <div class="row text-center g-4">
             <div class="col-md-3 col-6">
                 <div class="stat-number">500+</div>
@@ -106,9 +110,10 @@
     </div>
 </section>
 
-<!-- CÓMO FUNCIONA -->
-<section id="como-funciona" class="py-5">
-    <div class="container">
+<!-- CÓMO FUNCIONA con imagen de fondo -->
+<section id="como-funciona" class="py-5" style="background-image: url('{{ url_for('static', filename='images/fondo.png') }}'); background-size: cover; background-position: center; background-attachment: fixed; position: relative;">
+    <div class="como-funciona-overlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255, 255, 255, 0.288);"></div>
+    <div class="container" style="position: relative; z-index: 1;">
         <div class="text-center mb-5">
             <h2 class="fw-bold mb-3">¿Cómo funciona?</h2>
             <p class="text-secondary">Tres pasos simples para comenzar</p>
@@ -142,9 +147,10 @@
     </div>
 </section>
 
-<!-- TESTIMONIAL -->
-<section class="py-5 bg-light">
-    <div class="container">
+<!-- TESTIMONIAL con imagen de fondo -->
+<section class="py-5" style="background-image: url('{{ url_for('static', filename='images/testimonial-bg.jpg') }}'); background-size: cover; background-position: center; background-attachment: fixed; position: relative;">
+    <div class="testimonial-overlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(248, 249, 250, 0.92);"></div>
+    <div class="container" style="position: relative; z-index: 1;">
         <div class="row justify-content-center">
             <div class="col-lg-8">
                 <div class="testimonial-card">
@@ -171,7 +177,7 @@
     <div class="container">
         <div class="row g-4">
             <div class="col-md-4">
-                <h5>GESTIÓN<span class="text-orange">CORE</span></h5>
+                <h5>CASA<span class="text-orange">CLICK</span> BOLIVIA</h5>
                 <p class="small">Plataforma profesional para la gestión integral de tu negocio. Soluciones para
                     vendedores y clientes.</p>
                 <div class="d-flex gap-3 mt-3">
@@ -210,7 +216,7 @@
         </div>
         <hr class="my-4" style="border-color: #334155;">
         <div class="text-center small">
-            &copy; 2024 GestiónCore. Todos los derechos reservados.
+            &copy; 2026 Ingenieria de Sistemas. Todos los derechos reservados.
         </div>
     </div>
 </footer>

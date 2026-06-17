@@ -1,0 +1,573 @@
+{% extends 'base.html' %}
+{% block title %} Mis Ventas - CasaClick {% endblock %}
+
+{% block content %}
+
+<div class="container-fluid p-0 d-flex flex-column min-vh-100">
+    <div class="row g-0 flex-grow-1">
+        <!-- SIDEBAR VENDEDOR -->
+        <div class="col-auto sidebar" id="sidebarMenu">
+            <div class="d-flex flex-column h-100 p-3 pt-4">
+                <div class="mb-4 pb-2">
+                    <div class="fw-bold fs-5" style="color:#1a2c3e;">
+                        <i class="bi bi-shop me-2" style="color:#e25c0c;"></i>
+                        <span style="letter-spacing:-0.2px;">Mi<span class="text-orange-sobre">Negocio</span></span>
+                    </div>
+                    <div class="small text-secondary mt-1">Panel · Vendedor</div>
+                </div>
+                <nav class="nav flex-column">
+                    <a href="{{ url_for('vendedor.index') }}" class="nav-link-custom"><i
+                            class="bi bi-grid-3x3-gap-fill"></i> Mi catálogo</a>
+                    <a href="{{ url_for('vendedor.publicar') }}" class="nav-link-custom"><i
+                            class="bi bi-plus-circle"></i> Publicar propiedad</a>
+                    <a href="{{ url_for('vendedor.mis_ventas') }}" class="nav-link-custom active"><i
+                            class="bi bi-bar-chart-line"></i> Mis ventas</a>
+                    <a href="{{ url_for('vendedor.perfil') }}"
+                        class="nav-link-custom {% if request.endpoint == 'vendedor.perfil' %}active{% endif %}"><i
+                            class="bi bi-person-circle"></i> Mi perfil</a>
+                </nav>
+                <hr class="my-3">
+                <div class="small text-secondary mt-auto">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-person-circle fs-5"></i>
+                        <div>
+                            <div class="fw-semibold">{{ current_user.nombre }}</div>
+                            <div>{{ current_user.rol|capitalize }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="col bg-light" style="background-color: #eef2f5 !important;">
+            <!-- TOP BAR -->
+            <div class="top-bar d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-outline-sobre d-md-none" id="toggleSidebarBtn"><i
+                            class="bi bi-list"></i></button>
+                    <h5 class="mb-0 fw-semibold" style="font-size: 1rem;">Mis ventas / <span
+                            class="text-orange-sobre">Estadísticas y rendimiento</span></h5>
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                    <span class="small text-secondary"><i class="bi bi-calendar3"></i> {{ datetime.now().strftime('%d %b
+                        %Y') }}</span>
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-sobre btn-sm">
+                        <i class="bi bi-box-arrow-right"></i> Salir
+                    </a>
+                </div>
+            </div>
+
+            <div class="p-3 p-md-4">
+                <!-- BOTÓN EXPORTAR -->
+                <div class="d-flex justify-content-end mb-4">
+                    <a href="{{ url_for('vendedor.exportar_catalogo') }}" class="btn btn-success">
+                        <i class="bi bi-file-earmark-excel"></i> Exportar catálogo a CSV
+                    </a>
+                </div>
+
+                <!-- MÉTRICAS DE VENTAS -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3 col-6">
+                        <div class="metric-card">
+                            <div class="metric-title">Total propiedades</div>
+                            <div class="metric-value">{{ total_propiedades }}</div>
+                            <div class="small text-secondary">en catálogo</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="metric-card" style="border-left-color: #28a745;">
+                            <div class="metric-title">Vendidas</div>
+                            <div class="metric-value text-success">{{ vendidas }}</div>
+                            <div class="small text-secondary">propiedades</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="metric-card" style="border-left-color: #ffc107;">
+                            <div class="metric-title">Alquiladas</div>
+                            <div class="metric-value text-warning">{{ alquiladas }}</div>
+                            <div class="small text-secondary">propiedades</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="metric-card" style="border-left-color: #17a2b8;">
+                            <div class="metric-title">Ingresos totales</div>
+                            <div class="metric-value text-info">${{ "%.2f"|format(ingresos_totales) }}</div>
+                            <div class="small text-secondary">por ventas</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GRÁFICOS -->
+                <div class="row g-4 mb-4">
+                    <!-- Gráfico de Ventas Mensuales -->
+                    <div class="col-lg-8">
+                        <div class="card-plain">
+                            <div class="card-header-plain">
+                                <i class="bi bi-bar-chart-steps me-2 text-orange-sobre"></i> Ventas mensuales
+                            </div>
+                            <div class="p-3">
+                                <canvas id="ventasMensualesChart" height="250"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico de Ingresos Mensuales -->
+                    <div class="col-lg-4">
+                        <div class="card-plain">
+                            <div class="card-header-plain">
+                                <i class="bi bi-currency-dollar me-2 text-orange-sobre"></i> Ingresos mensuales
+                            </div>
+                            <div class="p-3">
+                                <canvas id="ingresosMensualesChart" height="250"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráfico de Ventas por Tipo -->
+                <div class="row g-4 mb-4">
+                    <div class="col-lg-6">
+                        <div class="card-plain">
+                            <div class="card-header-plain">
+                                <i class="bi bi-pie-chart me-2 text-orange-sobre"></i> Ventas por tipo de propiedad
+                            </div>
+                            <div class="p-3">
+                                <canvas id="ventasPorTipoChart" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resumen rápido -->
+                    <div class="col-lg-6">
+                        <div class="card-plain">
+                            <div class="card-header-plain">
+                                <i class="bi bi-speedometer2 me-2 text-orange-sobre"></i> Resumen de rendimiento
+                            </div>
+                            <div class="p-3">
+                                <div class="row g-3">
+                                    <div class="col-6">
+                                        <div class="p-3 bg-light rounded">
+                                            <small class="text-secondary d-block">Tasa de ventas</small>
+                                            <span class="fw-bold fs-5">
+                                                {% if total_propiedades > 0 %}
+                                                {{ ((vendidas / total_propiedades) * 100)|round(1) }}%
+                                                {% else %}
+                                                0%
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-3 bg-light rounded">
+                                            <small class="text-secondary d-block">Propiedades activas</small>
+                                            <span class="fw-bold fs-5">{{ disponibles }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-3 bg-light rounded">
+                                            <small class="text-secondary d-block">Ingreso promedio</small>
+                                            <span class="fw-bold fs-5">
+                                                {% if vendidas > 0 %}
+                                                ${{ "%.2f"|format(ingresos_totales / vendidas) }}
+                                                {% else %}
+                                                $0
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-3 bg-light rounded">
+                                            <small class="text-secondary d-block">Total transacciones</small>
+                                            <span class="fw-bold fs-5">{{ vendidas + alquiladas }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Últimas ventas -->
+                <div class="card-plain">
+                    <div class="card-header-plain">
+                        <i class="bi bi-clock-history me-2 text-orange-sobre"></i> Últimas propiedades vendidas
+                    </div>
+                    <div class="p-0 overflow-auto">
+                        {% if ventas_recientes %}
+                        <table class="table-professional">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Título</th>
+                                    <th>Tipo</th>
+                                    <th>Precio</th>
+                                    <th>Fecha</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for prop in ventas_recientes %}
+                                <tr>
+                                    <td>PR-{{ prop.id_propiedad }}</td>
+                                    <td>{{ prop.titulo|truncate(30) }}</td>
+                                    <td>{{ prop.tipo|capitalize }}</td>
+                                    <td>${{ "%.2f"|format(prop.precio) }}</td>
+                                    <td>{{ prop.fecha_publicacion.strftime('%d/%m/%Y') }}</td>
+                                    <td>
+                                        <span class="badge-flat badge-success-flat">
+                                            <i class="bi bi-check-circle-fill me-1"></i> Vendido
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-inbox" style="font-size: 2rem; color: #cbd5e1;"></i>
+                            <p class="text-secondary mt-2">No hay propiedades vendidas aún</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Incluir Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // ============================================
+    // SIDEBAR TOGGLE
+    // ============================================
+    const sidebar = document.getElementById('sidebarMenu');
+    const toggleBtn = document.getElementById('toggleSidebarBtn');
+    if (toggleBtn && sidebar) {
+        toggleBtn.addEventListener('click', () => sidebar.classList.toggle('show'));
+        window.addEventListener('click', (e) => {
+            if (window.innerWidth < 768 && sidebar.classList.contains('show') && !sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
+                sidebar.classList.remove('show');
+            }
+        });
+    }
+
+    // ============================================
+    // CONFIGURACIÓN DE COLORES
+    // ============================================
+    const colors = {
+        orange: '#e25c0c',
+        orangeLight: '#e25c0c20',
+        green: '#28a745',
+        red: '#dc3545',
+        blue: '#17a2b8',
+        yellow: '#ffc107',
+        purple: '#6f42c1',
+        pink: '#e83e8c'
+    };
+
+    // Paleta de colores para el gráfico de tipo
+    const tipoColors = [
+        '#e25c0c', '#28a745', '#17a2b8', '#ffc107', '#dc3545',
+        '#6f42c1', '#e83e8c', '#fd7e14', '#20c997', '#6610f2'
+    ];
+
+    // ============================================
+    // GRÁFICO 1: VENTAS MENSUALES
+    // ============================================
+    const ctx1 = document.getElementById('ventasMensualesChart').getContext('2d');
+    new Chart(ctx1, {
+        type: 'bar',
+        data: {
+            labels: {{ meses| tojson | safe }},
+        datasets: [{
+            label: 'Ventas',
+            data: {{ ventas_mensuales| tojson | safe }},
+        backgroundColor: 'rgba(226, 92, 12, 0.7)',
+        borderColor: '#e25c0c',
+        borderWidth: 2,
+        borderRadius: 4
+            }]
+        },
+        options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                callbacks: {
+                    label: function (context) {
+                        return `Ventas: ${context.raw}`;
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+    });
+
+    // ============================================
+    // GRÁFICO 2: INGRESOS MENSUALES
+    // ============================================
+    const ctx2 = document.getElementById('ingresosMensualesChart').getContext('2d');
+    new Chart(ctx2, {
+        type: 'line',
+        data: {
+            labels: {{ meses| tojson | safe }},
+        datasets: [{
+            label: 'Ingresos (USD)',
+            data: {{ ingresos_mensuales| tojson | safe }},
+        backgroundColor: 'rgba(23, 162, 184, 0.2)',
+        borderColor: '#17a2b8',
+        borderWidth: 3,
+        pointBackgroundColor: '#17a2b8',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        tension: 0.3,
+        fill: true
+            }]
+        },
+        options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                callbacks: {
+                    label: function (context) {
+                        return `$${context.raw.toFixed(2)}`;
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function (value) {
+                        return '$' + value.toFixed(0);
+                    }
+                }
+            }
+        }
+    }
+    });
+
+    // ============================================
+    // GRÁFICO 3: VENTAS POR TIPO
+    // ============================================
+    if ({{ tipos | length }} > 0) {
+        const ctx3 = document.getElementById('ventasPorTipoChart').getContext('2d');
+        new Chart(ctx3, {
+            type: 'pie',
+            data: {
+                labels: {{ tipos| tojson | safe }},
+    datasets: [{
+        data: {{ cantidades| tojson | safe }},
+        backgroundColor: tipoColors.slice(0, {{ tipos| length }}),
+        borderColor: '#fff',
+        borderWidth: 2
+                }]
+            },
+    options: {
+        responsive: true,
+            plugins: {
+            legend: {
+                position: 'bottom',
+                    labels: {
+                    padding: 15,
+                        usePointStyle: true
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const percentage = ((context.raw / total) * 100).toFixed(1);
+                        return `${context.label}: ${context.raw} (${percentage}%)`;
+                    }
+                }
+            }
+        }
+    }
+        });
+    } else {
+        document.getElementById('ventasPorTipoChart').parentElement.innerHTML = `
+            <div class="text-center py-4">
+                <i class="bi bi-pie-chart" style="font-size: 2rem; color: #cbd5e1;"></i>
+                <p class="text-secondary mt-2">No hay datos de ventas por tipo</p>
+            </div>
+        `;
+    }
+</script>
+
+<style>
+    /* Estilos para la página de ventas */
+    .card-plain {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .card-header-plain {
+        padding: 12px 16px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        font-weight: 600;
+        color: #1a2c3e;
+    }
+
+    .badge-flat {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        display: inline-block;
+    }
+
+    .badge-success-flat {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .metric-card {
+        background: white;
+        padding: 16px;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border-left: 3px solid #e25c0c;
+    }
+
+    .metric-title {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-bottom: 4px;
+    }
+
+    .metric-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1a2c3e;
+    }
+
+    .nav-link-custom {
+        color: #1a2c3e;
+        padding: 10px 16px;
+        border-radius: 6px;
+        text-decoration: none;
+        margin-bottom: 2px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.2s;
+    }
+
+    .nav-link-custom:hover {
+        background: #f8f9fa;
+        color: #e25c0c;
+    }
+
+    .nav-link-custom.active {
+        background: #e25c0c;
+        color: white;
+    }
+
+    .nav-link-custom.active i {
+        color: white;
+    }
+
+    .sidebar {
+        background: #ffffff;
+        border-right: 1px solid #e9ecef;
+        min-height: 100vh;
+        width: 240px;
+    }
+
+    .top-bar {
+        background: white;
+        padding: 12px 24px;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .btn-primary-sobre {
+        background-color: #e25c0c;
+        border-color: #e25c0c;
+        color: white;
+    }
+
+    .btn-primary-sobre:hover {
+        background-color: #c44e0a;
+        border-color: #c44e0a;
+        color: white;
+    }
+
+    .btn-outline-sobre {
+        border-color: #e25c0c;
+        color: #e25c0c;
+    }
+
+    .btn-outline-sobre:hover {
+        background-color: #e25c0c;
+        color: white;
+    }
+
+    .text-orange-sobre {
+        color: #e25c0c;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+        color: white;
+    }
+
+    .btn-success:hover {
+        background-color: #218838;
+        border-color: #1e7e34;
+        color: white;
+    }
+
+    .table-professional {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+    }
+
+    .table-professional th {
+        background: #f8f9fa;
+        padding: 10px 16px;
+        border-bottom: 2px solid #e9ecef;
+        text-align: left;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .table-professional td {
+        padding: 10px 16px;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .table-professional tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    canvas {
+        max-height: 250px;
+        width: 100% !important;
+    }
+</style>
+
+{% endblock %}

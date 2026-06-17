@@ -2,7 +2,7 @@
     <div class="container">
         <a class="navbar-brand" href="{{ url_for('main.index') }}">
             <i class="bi bi-bank2 me-2" style="color:#e25c0c;"></i>
-            Gestión<span class="text-orange">Core</span>
+            Casa<span class="text-orange">Click</span> Bolivia
         </a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
@@ -33,9 +33,6 @@
                 {% if current_user.is_authenticated and current_user.rol.lower() == 'cliente' %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('cliente.index') }}">Propiedades</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('cliente.favoritos') }}">Favoritos</a>
                     </li>
                 {% endif %}
 

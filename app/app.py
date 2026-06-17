@@ -21,27 +21,18 @@ def create_app():
     @login_manager.user_loader
     def load_user(user_id):
         return Usuario.query.get(int(user_id))
-    
-
-
-    # En app/app.py, después de crear la app
     from app.utils.uploads import get_image_url
-
-    # Agregar un contexto para las imágenes
     @app.context_processor
     def inject_image_helpers():
         return {
             'get_image_url': get_image_url
         }
-    
-    #Importacion de los Blueprint 
     from app.main import main_bp
     from app.auth import auth_bp
     from app.cliente import cliente_bp
     from app.admin import admin_bp
     from app.vendedor import vendedor_bp
 
-    #Registro de los Blueprint
     app.register_blueprint(auth_bp,url_prefix='/auth')
     app.register_blueprint(main_bp)
     app.register_blueprint(cliente_bp, url_prefix='/cliente')

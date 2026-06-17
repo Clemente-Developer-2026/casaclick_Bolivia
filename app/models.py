@@ -14,7 +14,6 @@ class Usuario(db.Model, UserMixin):
     password = db.Column(db.String(200), nullable=False)
     fecha_registro = db.Column(db.Date, nullable=False)
     
-    # Relación con Propiedad con CASCADE
     propiedades = db.relationship('Propiedad', back_populates='usuario', lazy=True, cascade="all, delete-orphan")
 
     def get_id(self):
@@ -36,7 +35,7 @@ class Auditoria(db.Model):
     __tablename__ = "auditoria"
     
     id_auditoria = db.Column(db.Integer, primary_key=True)
-    id_usuario = db.Column(db.Integer, db.ForeignKey('users.id_usuario'), nullable=True)  # Permitir NULL
+    id_usuario = db.Column(db.Integer, db.ForeignKey('users.id_usuario'), nullable=True)
     nombre_usuario = db.Column(db.String(100), nullable=True)
     email_usuario = db.Column(db.String(100), nullable=True)
     tabla_afectada = db.Column(db.String(50), nullable=False)
@@ -58,9 +57,8 @@ class Auditoria(db.Model):
         self.hora_actividad = ahora.time()
         import getpass
         self.user_sistema = getpass.getuser()
-    # ====== AGREGAR ESTE MÉTODO ======
+    
     def to_dict(self):
-        """Convertir objeto Auditoria a diccionario"""
         return {
             "id_auditoria": self.id_auditoria,
             "id_usuario": self.id_usuario,
@@ -77,7 +75,7 @@ class Auditoria(db.Model):
             "ip_usuario": self.ip_usuario,
             "endpoint": self.endpoint
         }
-    # =================================
+    
 
 
 
@@ -90,10 +88,8 @@ class Departamento(db.Model):
     id_departamento = db.Column(db.Integer, primary_key=True)
     departamento = db.Column(db.String(100), nullable=False)
     
-    # Relación con Provincia con CASCADE
     provincias = db.relationship('Provincia', back_populates='departamento', lazy=True, cascade="all, delete-orphan")
     
-    # Relación con Propiedad (SIN cascade para no eliminar propiedades al eliminar departamento)
     propiedades = db.relationship('Propiedad', back_populates='departamento', lazy=True)
 
     def to_dict(self):
@@ -107,16 +103,12 @@ class Provincia(db.Model):
     id_provincia = db.Column(db.Integer, primary_key=True)
     provincia = db.Column(db.String(100), nullable=False)
     
-    # Clave foránea a Departamento
     id_departamento = db.Column(db.Integer, db.ForeignKey('departamentos.id_departamento'), nullable=False)
     
-    # Relaciones
     departamento = db.relationship('Departamento', back_populates='provincias')
     
-    # Relación con Ciudad con CASCADE
     ciudades = db.relationship('Ciudad', back_populates='provincia', lazy=True, cascade="all, delete-orphan")
     
-    # Relación con Propiedad (SIN cascade)
     propiedades = db.relationship('Propiedad', back_populates='provincia', lazy=True)
 
     def to_dict(self):
@@ -131,13 +123,10 @@ class Ciudad(db.Model):
     id_ciudad = db.Column(db.Integer, primary_key=True)  
     ciudad = db.Column(db.String(100), nullable=False)
     
-    # Clave foránea a Provincia
     id_provincia = db.Column(db.Integer, db.ForeignKey('provincias.id_provincia'), nullable=False)
     
-    # Relaciones
     provincia = db.relationship('Provincia', back_populates='ciudades')
     
-    # Relación con Propiedad (SIN cascade)
     propiedades = db.relationship('Propiedad', back_populates='ciudad', lazy=True)
 
     def to_dict(self):
@@ -159,19 +148,16 @@ class Propiedad(db.Model):
     estado = db.Column(db.String(50), nullable=False) 
     fecha_publicacion = db.Column(db.Date, nullable=False)
     
-    # Claves foráneas
     id_departamento = db.Column(db.Integer, db.ForeignKey('departamentos.id_departamento'), nullable=False)
     id_provincia = db.Column(db.Integer, db.ForeignKey('provincias.id_provincia'), nullable=False)
     id_ciudad = db.Column(db.Integer, db.ForeignKey('ciudades.id_ciudad'), nullable=False)
     id_usuario = db.Column(db.Integer, db.ForeignKey('users.id_usuario'), nullable=False)
     
-    # Relaciones
     usuario = db.relationship('Usuario', back_populates='propiedades')
     departamento = db.relationship('Departamento', back_populates='propiedades')
     provincia = db.relationship('Provincia', back_populates='propiedades')
     ciudad = db.relationship('Ciudad', back_populates='propiedades')
     
-    # Relación con Imagen con CASCADE (ya lo tienes)
     imagenes = db.relationship('Imagen',back_populates='propiedad', lazy=True, cascade="all, delete-orphan")
 
     def to_dict(self):
@@ -197,7 +183,6 @@ class Imagen(db.Model):
     imagen = db.Column(db.String(255), nullable=False)
     id_propiedad = db.Column(db.Integer, db.ForeignKey('propiedades.id_propiedad'), nullable=False)
     
-    # Relación con Propiedad
     propiedad = db.relationship('Propiedad', back_populates='imagenes')
     
     def to_dict(self):
@@ -210,30 +195,20 @@ class Imagen(db.Model):
 
 
 
-# ==================================================
-# EVENTOS DE AUDITORÍA CORREGIDOS
-# ==================================================
-
 from sqlalchemy import event
 import json
 import sys
 
 def after_insert_listener(mapper, connection, target):
-    """Evento que se dispara después de INSERTAR un registro - VERSIÓN CORREGIDA"""
     try:
-        # Obtener el ID del registro insertado
         id_registro = getattr(target, list(target.__table__.primary_key.columns)[0].name)
         
-        # Obtener datos del objeto
         datos_nuevos = None
         if hasattr(target, 'to_dict'):
             datos_nuevos = target.to_dict()
         
-        # Obtener información del usuario actual desde la conexión
-        # Usar una conexión separada para evitar conflictos
         from app.utils.audit import AuditSystem
         
-        # Crear el registro de auditoría
         user_info = AuditSystem.get_current_user_info()
         request_info = AuditSystem.get_request_info()
         
@@ -252,7 +227,6 @@ def after_insert_listener(mapper, connection, target):
             endpoint=request_info['endpoint']
         )
         
-        # Usar la conexión directamente para evitar conflictos con la sesión
         connection.execute(
             Auditoria.__table__.insert().values(
                 id_usuario=auditoria.id_usuario,
@@ -269,18 +243,14 @@ def after_insert_listener(mapper, connection, target):
                 user_sistema=auditoria.user_sistema
             )
         )
-        print(f"✅ Auditoría INSERT registrada para {target.__tablename__} ID:{id_registro}")
         
     except Exception as e:
-        print(f"❌ Error en after_insert: {str(e)}")
-        # No interrumpir la operación principal
+        pass
 
 def after_update_listener(mapper, connection, target):
-    """Evento que se dispara después de ACTUALIZAR un registro - VERSIÓN CORREGIDA"""
     try:
         id_registro = getattr(target, list(target.__table__.primary_key.columns)[0].name)
         
-        # Obtener datos anteriores (no podemos obtenerlos fácilmente, así que omitimos por ahora)
         datos_nuevos = None
         if hasattr(target, 'to_dict'):
             datos_nuevos = target.to_dict()
@@ -321,17 +291,14 @@ def after_update_listener(mapper, connection, target):
                 user_sistema=auditoria.user_sistema
             )
         )
-        print(f"✅ Auditoría UPDATE registrada para {target.__tablename__} ID:{id_registro}")
         
     except Exception as e:
-        print(f"❌ Error en after_update: {str(e)}")
+        pass
 
 def after_delete_listener(mapper, connection, target):
-    """Evento que se dispara después de ELIMINAR un registro - VERSIÓN CORREGIDA"""
     try:
         id_registro = getattr(target, list(target.__table__.primary_key.columns)[0].name)
         
-        # Obtener datos eliminados
         datos_anteriores = None
         if hasattr(target, 'to_dict'):
             datos_anteriores = target.to_dict()
@@ -372,22 +339,16 @@ def after_delete_listener(mapper, connection, target):
                 user_sistema=auditoria.user_sistema
             )
         )
-        print(f"✅ Auditoría DELETE registrada para {target.__tablename__} ID:{id_registro}")
         
     except Exception as e:
-        print(f"❌ Error en after_delete: {str(e)}")
+        pass
 
-# Registrar los eventos para TODOS los modelos
 def register_audit_events(model_class):
-    """Registrar eventos de auditoría para un modelo"""
     event.listen(model_class, 'after_insert', after_insert_listener)
     event.listen(model_class, 'after_update', after_update_listener)
     event.listen(model_class, 'after_delete', after_delete_listener)
 
-# Lista de modelos a auditar (excluir Auditoria para evitar bucles infinitos)
 modelos_a_auditar = [Usuario, Propiedad, Imagen, Departamento, Provincia, Ciudad]
 
-# Registrar eventos para cada modelo
 for modelo in modelos_a_auditar:
     register_audit_events(modelo)
-    print(f"✅ Eventos de auditoría registrados para {modelo.__name__}")

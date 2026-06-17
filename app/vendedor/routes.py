@@ -1,4 +1,4 @@
-from flask import render_template, redirect, request, url_for, jsonify, send_from_directory, current_app
+from flask import render_template, redirect, request, url_for, jsonify, send_from_directory, current_app, Response
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 import os
@@ -451,3 +451,197 @@ def api_obtener_imagenes(id_propiedad):
         })
     
     return jsonify({'success': True, 'data': data})
+
+
+
+
+
+from datetime import datetime, timedelta
+from sqlalchemy import func
+
+# Agregar esta función después de las otras rutas
+@vendedor_bp.route("/mis_ventas")
+@login_required
+def mis_ventas():
+    """Panel de ventas del vendedor con gráficos"""
+    if current_user.rol.lower() != 'vendedor':
+        return render_template("main/index.html")
+    
+    # Obtener todas las propiedades del vendedor
+    propiedades = Propiedad.query.filter_by(id_usuario=current_user.id_usuario).all()
+    
+    # Estadísticas de ventas
+    total_propiedades = len(propiedades)
+    vendidas = Propiedad.query.filter_by(id_usuario=current_user.id_usuario, estado='vendido').count()
+    alquiladas = Propiedad.query.filter_by(id_usuario=current_user.id_usuario, estado='alquilado').count()
+    disponibles = Propiedad.query.filter_by(id_usuario=current_user.id_usuario, estado='disponible').count()
+    
+    # Calcular ingresos totales (propiedades vendidas)
+    propiedades_vendidas = Propiedad.query.filter_by(id_usuario=current_user.id_usuario, estado='vendido').all()
+    ingresos_totales = sum([prop.precio for prop in propiedades_vendidas])
+    
+    # Ventas por mes (últimos 12 meses)
+    meses = []
+    ventas_mensuales = []
+    ingresos_mensuales = []
+    
+    for i in range(12):
+        mes = datetime.now().date().replace(day=1) - timedelta(days=30*i)
+        inicio_mes = mes.replace(day=1)
+        fin_mes = (inicio_mes + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+        
+        # Propiedades vendidas en este mes
+        ventas_mes = Propiedad.query.filter(
+            Propiedad.id_usuario == current_user.id_usuario,
+            Propiedad.estado == 'vendido',
+            Propiedad.fecha_publicacion >= inicio_mes,
+            Propiedad.fecha_publicacion <= fin_mes
+        ).count()
+        
+        # Ingresos del mes
+        ingresos_mes = db.session.query(func.sum(Propiedad.precio)).filter(
+            Propiedad.id_usuario == current_user.id_usuario,
+            Propiedad.estado == 'vendido',
+            Propiedad.fecha_publicacion >= inicio_mes,
+            Propiedad.fecha_publicacion <= fin_mes
+        ).scalar() or 0
+        
+        meses.append(inicio_mes.strftime('%b %Y'))
+        ventas_mensuales.append(ventas_mes)
+        ingresos_mensuales.append(float(ingresos_mes))
+    
+    # Ventas por tipo de propiedad
+    ventas_por_tipo = db.session.query(
+        Propiedad.tipo,
+        func.count(Propiedad.id_propiedad).label('total')
+    ).filter(
+        Propiedad.id_usuario == current_user.id_usuario,
+        Propiedad.estado == 'vendido'
+    ).group_by(Propiedad.tipo).all()
+    
+    # Datos para gráfico de tipo
+    tipos = [t.tipo.capitalize() for t in ventas_por_tipo] if ventas_por_tipo else []
+    cantidades = [t.total for t in ventas_por_tipo] if ventas_por_tipo else []
+    
+    # Propiedades recientes vendidas
+    ventas_recientes = Propiedad.query.filter(
+        Propiedad.id_usuario == current_user.id_usuario,
+        Propiedad.estado == 'vendido'
+    ).order_by(Propiedad.fecha_publicacion.desc()).limit(10).all()
+    
+    return render_template(
+        "vendedor/mis_ventas.html",
+        total_propiedades=total_propiedades,
+        vendidas=vendidas,
+        alquiladas=alquiladas,
+        disponibles=disponibles,
+        ingresos_totales=ingresos_totales,
+        meses=meses,
+        ventas_mensuales=ventas_mensuales,
+        ingresos_mensuales=ingresos_mensuales,
+        tipos=tipos,
+        cantidades=cantidades,
+        ventas_recientes=ventas_recientes
+    )
+
+
+@vendedor_bp.route("/exportar-catalogo")
+@login_required
+def exportar_catalogo():
+    """Exportar catálogo de productos a CSV"""
+    if current_user.rol.lower() != 'vendedor':
+        return jsonify({'success': False, 'message': 'No autorizado'}), 403
+    
+    propiedades = Propiedad.query.filter_by(id_usuario=current_user.id_usuario).all()
+    
+    # Crear archivo CSV en memoria
+    import csv
+    import io
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Escribir encabezados
+    writer.writerow([
+        'ID', 'Título', 'Tipo', 'Descripción', 'Precio (USD)', 
+        'Superficie (m²)', 'Dirección', 'Estado', 'Fecha Publicación'
+    ])
+    
+    # Escribir datos
+    for prop in propiedades:
+        writer.writerow([
+            f'PR-{prop.id_propiedad}',
+            prop.titulo,
+            prop.tipo.capitalize(),
+            prop.descripcion,
+            f'{prop.precio:.2f}',
+            prop.superficie,
+            prop.direccion,
+            prop.estado.capitalize(),
+            prop.fecha_publicacion.strftime('%d/%m/%Y')
+        ])
+    
+    # Crear respuesta
+    output.seek(0)
+    from flask import Response
+    return Response(
+        output.getvalue(),
+        mimetype='text/csv',
+        headers={
+            'Content-Disposition': f'attachment; filename=catalogo_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+        }
+    )
+
+
+
+@vendedor_bp.route("/perfil")
+@login_required
+def perfil():
+    """Perfil del vendedor con toda su información"""
+    if current_user.rol.lower() != 'vendedor':
+        return render_template("main/index.html")
+    
+    # Obtener estadísticas del vendedor
+    total_propiedades = Propiedad.query.filter_by(id_usuario=current_user.id_usuario).count()
+    propiedades_vendidas = Propiedad.query.filter_by(id_usuario=current_user.id_usuario, estado='vendido').count()
+    propiedades_activas = Propiedad.query.filter_by(id_usuario=current_user.id_usuario, estado='disponible').count()
+    propiedades_alquiladas = Propiedad.query.filter_by(id_usuario=current_user.id_usuario, estado='alquilado').count()
+    
+    # Calcular ingresos totales
+    ingresos_totales = db.session.query(func.sum(Propiedad.precio)).filter(
+        Propiedad.id_usuario == current_user.id_usuario,
+        Propiedad.estado == 'vendido'
+    ).scalar() or 0
+    
+    # Propiedades recientes
+    propiedades_recientes = Propiedad.query.filter_by(
+        id_usuario=current_user.id_usuario
+    ).order_by(Propiedad.fecha_publicacion.desc()).limit(5).all()
+    
+    # Fecha de registro formateada
+    fecha_registro = current_user.fecha_registro.strftime('%d/%m/%Y') if current_user.fecha_registro else 'No disponible'
+    
+    # Calcular antigüedad
+    from datetime import date
+    if current_user.fecha_registro:
+        dias = (date.today() - current_user.fecha_registro).days
+        if dias < 30:
+            antiguedad = f"{dias} días"
+        elif dias < 365:
+            antiguedad = f"{dias // 30} meses"
+        else:
+            antiguedad = f"{dias // 365} años"
+    else:
+        antiguedad = "N/A"
+    
+    return render_template(
+        "vendedor/vendedor.html",
+        usuario=current_user,
+        fecha_registro=fecha_registro,
+        antiguedad=antiguedad,
+        total_propiedades=total_propiedades,
+        propiedades_vendidas=propiedades_vendidas,
+        propiedades_activas=propiedades_activas,
+        propiedades_alquiladas=propiedades_alquiladas,
+        ingresos_totales=ingresos_totales,
+        propiedades_recientes=propiedades_recientes
+    )

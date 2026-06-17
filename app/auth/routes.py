@@ -76,9 +76,9 @@ def login():
     if usuario.rol.lower() == "administrador":
         dashboard = "/dashboard"
     elif usuario.rol.lower() == "vendedor":
-        dashboard = "/vendedor/vendedor"
+        dashboard = "/vendedor/"
     elif usuario.rol.lower() == "cliente":
-        dashboard = "/cliente/cliente"
+        dashboard = "/cliente/"
     else:
         dashboard = "/main/index"
     return jsonify({

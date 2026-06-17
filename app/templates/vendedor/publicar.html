@@ -18,9 +18,8 @@
                 <nav class="nav flex-column">
                     <a href="{{ url_for('vendedor.index') }}" class="nav-link-custom"><i class="bi bi-grid-3x3-gap-fill"></i> Mi catálogo</a>
                     <a href="#" class="nav-link-custom active"><i class="bi bi-plus-circle"></i> Publicar propiedad</a>
-                    <a href="#" class="nav-link-custom"><i class="bi bi-bar-chart-line"></i> Mis ventas</a>
-                    <a href="#" class="nav-link-custom"><i class="bi bi-people"></i> Mis clientes</a>
-                    <a href="#" class="nav-link-custom"><i class="bi bi-gear"></i> Configuración</a>
+                    <a href="{{ url_for('vendedor.mis_ventas') }}" class="nav-link-custom"><i class="bi bi-bar-chart-line"></i> Mis ventas</a>
+                    <a href="{{ url_for('vendedor.perfil') }}" class="nav-link-custom {% if request.endpoint == 'vendedor.perfil' %}active{% endif %}"><i class="bi bi-person-circle"></i> Mi perfil</a>
                 </nav>
                 <hr class="my-3">
                 <div class="small text-secondary mt-auto">

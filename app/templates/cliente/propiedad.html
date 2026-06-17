@@ -5,22 +5,19 @@
 
 <div class="container-fluid p-0 d-flex flex-column min-vh-100">
     <div class="row g-0 flex-grow-1">
-        <!-- SIDEBAR VENDEDOR -->
+        <!-- SIDEBAR CLIENTE -->
         <div class="col-auto sidebar" id="sidebarMenu">
             <div class="d-flex flex-column h-100 p-3 pt-4">
                 <div class="mb-4 pb-2">
                     <div class="fw-bold fs-5" style="color:#1a2c3e;">
-                        <i class="bi bi-shop me-2" style="color:#e25c0c;"></i> 
-                        <span style="letter-spacing:-0.2px;">Mi<span class="text-orange-sobre">Negocio</span></span>
+                        <i class="bi bi-house-heart me-2" style="color:#e25c0c;"></i> 
+                        <span style="letter-spacing:-0.2px;">Casa<span class="text-orange-sobre">Click</span></span>
                     </div>
-                    <div class="small text-secondary mt-1">Panel · Vendedor</div>
+                    <div class="small text-secondary mt-1">Panel · Cliente</div>
                 </div>
                 <nav class="nav flex-column">
-                    <a href="{{ url_for('vendedor.index') }}" class="nav-link-custom"><i class="bi bi-grid-3x3-gap-fill"></i> Mi catálogo</a>
-                    <a href="{{ url_for('vendedor.publicar') }}" class="nav-link-custom"><i class="bi bi-plus-circle"></i> Publicar propiedad</a>
-                    <a href="#" class="nav-link-custom active"><i class="bi bi-eye"></i> Ver propiedad</a>
-                    <a href="{{ url_for('vendedor.mis_ventas') }}" class="nav-link-custom"><i class="bi bi-bar-chart-line"></i> Mis ventas</a>
-                    <a href="{{ url_for('vendedor.perfil') }}" class="nav-link-custom {% if request.endpoint == 'vendedor.perfil' %}active{% endif %}"><i class="bi bi-person-circle"></i> Mi perfil</a>
+                    <a href="{{ url_for('cliente.index') }}" class="nav-link-custom"><i class="bi bi-grid-3x3-gap-fill"></i> Propiedades</a>
+                    <a href="{{ url_for('cliente.perfil') }}" class="nav-link-custom"><i class="bi bi-person-circle"></i> Mi perfil</a>
                 </nav>
                 <hr class="my-3">
                 <div class="small text-secondary mt-auto">
@@ -52,24 +49,17 @@
             </div>
 
             <div class="p-3 p-md-4">
-                <!-- BOTONES DE NAVEGACIÓN -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <a href="{{ url_for('vendedor.index') }}" class="btn btn-outline-sobre btn-sm">
-                        <i class="bi bi-arrow-left"></i> Volver al catálogo
+                    <a href="{{ url_for('cliente.index') }}" class="btn btn-outline-sobre btn-sm">
+                        <i class="bi bi-arrow-left"></i> Volver al listado
                     </a>
-                    <div class="d-flex gap-2">
-                        <a href="{{ url_for('vendedor.editar_propiedad', id_propiedad=propiedad.id_propiedad) }}" class="btn btn-primary-sobre btn-sm">
-                            <i class="bi bi-pencil"></i> Editar
-                        </a>
-                        <button onclick="eliminarPropiedad({{ propiedad.id_propiedad }}, '{{ propiedad.titulo }}')" class="btn btn-danger-sobre btn-sm">
-                            <i class="bi bi-trash"></i> Eliminar
-                        </button>
-                    </div>
+                    <button class="btn btn-outline-danger btn-sm" onclick="toggleFavorito({{ propiedad.id_propiedad }})">
+                        <i class="bi bi-heart"></i> Agregar a favoritos
+                    </button>
                 </div>
 
-                <!-- CONTENIDO PRINCIPAL -->
                 <div class="row g-4">
-                    <!-- COLUMNA IZQUIERDA: Imágenes -->
+                    <!-- Columna izquierda: Imágenes -->
                     <div class="col-lg-7">
                         <div class="card-plain">
                             <div class="card-header-plain">
@@ -78,28 +68,36 @@
                             </div>
                             <div class="p-3">
                                 {% if imagenes and imagenes|length > 0 %}
-                                    <!-- Imagen principal -->
-                                    <div class="mb-3">
-                                        <img src="{{ url_for('vendedor.serve_upload', filename=imagenes[0].imagen) }}" 
-                                             alt="{{ propiedad.titulo }}" 
-                                             class="img-fluid rounded" 
-                                             style="width: 100%; max-height: 400px; object-fit: cover; border-radius: 8px;">
-                                    </div>
-                                    
-                                    <!-- Miniaturas -->
-                                    {% if imagenes|length > 1 %}
-                                        <div class="row g-2">
-                                            {% for imagen in imagenes[1:] %}
-                                                <div class="col-3">
+                                    <div id="carouselDetalle" class="carousel slide" data-bs-ride="carousel" data-bs-interval="4000">
+                                        <div class="carousel-inner">
+                                            {% for imagen in imagenes %}
+                                                <div class="carousel-item {% if loop.first %}active{% endif %}">
                                                     <img src="{{ url_for('vendedor.serve_upload', filename=imagen.imagen) }}" 
-                                                         alt="Imagen {{ loop.index + 1 }}" 
-                                                         class="img-fluid rounded" 
-                                                         style="width: 100%; height: 100px; object-fit: cover; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s;"
-                                                         onclick="this.style.borderColor='#e25c0c'; document.querySelector('.main-image').src = this.src;">
+                                                         alt="{{ propiedad.titulo }}" 
+                                                         class="d-block w-100" 
+                                                         style="max-height: 400px; object-fit: cover; border-radius: 8px;">
                                                 </div>
                                             {% endfor %}
                                         </div>
-                                    {% endif %}
+                                        {% if imagenes|length > 1 %}
+                                            <button class="carousel-control-prev" type="button" data-bs-target="#carouselDetalle" data-bs-slide="prev">
+                                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                                <span class="visually-hidden">Anterior</span>
+                                            </button>
+                                            <button class="carousel-control-next" type="button" data-bs-target="#carouselDetalle" data-bs-slide="next">
+                                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                                <span class="visually-hidden">Siguiente</span>
+                                            </button>
+                                            <div class="carousel-indicators" style="bottom: -30px;">
+                                                {% for imagen in imagenes %}
+                                                    <button type="button" data-bs-target="#carouselDetalle" 
+                                                            data-bs-slide-to="{{ loop.index0 }}" 
+                                                            class="{% if loop.first %}active{% endif %}" 
+                                                            style="width: 10px; height: 10px; border-radius: 50%; margin: 0 4px;"></button>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
                                 {% else %}
                                     <div class="text-center py-5">
                                         <i class="bi bi-image" style="font-size: 4rem; color: #cbd5e1;"></i>
@@ -110,23 +108,14 @@
                         </div>
                     </div>
 
-                    <!-- COLUMNA DERECHA: Información -->
+                    <!-- Columna derecha: Información -->
                     <div class="col-lg-5">
-                        <!-- Estado y precio -->
                         <div class="card-plain mb-3">
                             <div class="p-3">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <h3 class="fw-bold mb-0" style="color: #1a2c3e;">{{ propiedad.titulo }}</h3>
-                                    <span class="badge-flat 
-                                        {% if propiedad.estado == 'disponible' %}badge-success-flat
-                                        {% elif propiedad.estado == 'vendido' %}badge-danger-flat
-                                        {% else %}badge-warning-flat{% endif %}" 
-                                        style="font-size: 0.9rem; padding: 6px 16px;">
-                                        <i class="bi 
-                                            {% if propiedad.estado == 'disponible' %}bi-check-circle-fill
-                                            {% elif propiedad.estado == 'vendido' %}bi-x-circle-fill
-                                            {% else %}bi-clock-fill{% endif %} me-1"></i>
-                                        {{ propiedad.estado|capitalize }}
+                                    <span class="badge-flat badge-success-flat" style="font-size: 0.9rem; padding: 6px 16px;">
+                                        <i class="bi bi-check-circle-fill me-1"></i> Disponible
                                     </span>
                                 </div>
                                 <div class="product-price" style="font-size: 2rem; font-weight: 700; color: #e25c0c;">
@@ -143,7 +132,6 @@
                             </div>
                         </div>
 
-                        <!-- Datos de la propiedad -->
                         <div class="card-plain mb-3">
                             <div class="card-header-plain">
                                 <i class="bi bi-info-circle me-2 text-orange-sobre"></i> Datos de la propiedad
@@ -178,7 +166,6 @@
                             </div>
                         </div>
 
-                        <!-- Datos del vendedor -->
                         <div class="card-plain">
                             <div class="card-header-plain">
                                 <i class="bi bi-person-badge me-2 text-orange-sobre"></i> Datos del vendedor
@@ -191,10 +178,7 @@
                                     </div>
                                     <div class="ms-3">
                                         <div class="fw-bold">{{ vendedor.nombre if vendedor else 'No disponible' }}</div>
-                                        <span class="badge-flat 
-                                            {% if vendedor.rol == 'administrador' %}badge-primary-flat
-                                            {% elif vendedor.rol == 'vendedor' %}badge-info-flat
-                                            {% else %}badge-success-flat{% endif %}">
+                                        <span class="badge-flat badge-info-flat">
                                             {{ vendedor.rol|capitalize if vendedor else 'N/A' }}
                                         </span>
                                     </div>
@@ -212,12 +196,6 @@
                                                 <i class="bi bi-telephone me-1"></i> Teléfono
                                             </label>
                                             <span>{{ vendedor.telefono or 'No registrado' }}</span>
-                                        </div>
-                                        <div class="col-12">
-                                            <label class="text-secondary small d-block">
-                                                <i class="bi bi-calendar3 me-1"></i> Registrado desde
-                                            </label>
-                                            <span>{{ vendedor.fecha_registro.strftime('%d/%m/%Y') if vendedor.fecha_registro else 'N/A' }}</span>
                                         </div>
                                     </div>
                                 {% endif %}
@@ -244,53 +222,12 @@
         });
     }
 
-    // Función para eliminar propiedad
-    function eliminarPropiedad(id, titulo) {
-        if (confirm(`¿Estás seguro de eliminar la propiedad "${titulo}"? Esta acción eliminará todas sus imágenes.`)) {
-            fetch(`/vendedor/propiedad/eliminar/${id}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token() if csrf_token else "" }}'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('✅ Propiedad eliminada correctamente');
-                    window.location.href = '/vendedor/';
-                } else {
-                    alert('❌ Error: ' + data.message);
-                }
-            })
-            .catch(error => {
-                alert('❌ Error al eliminar la propiedad');
-                console.error(error);
-            });
-        }
+    function toggleFavorito(id) {
+        alert('Función de favoritos en desarrollo');
     }
-
-    // Efecto hover en miniaturas
-    document.querySelectorAll('.col-3 img').forEach(img => {
-        img.addEventListener('mouseenter', function() {
-            this.style.borderColor = '#e25c0c';
-        });
-        img.addEventListener('mouseleave', function() {
-            if (!this.style.borderColor || this.style.borderColor === '#e25c0c') {
-                this.style.borderColor = 'transparent';
-            }
-        });
-    });
-
-    // Botón de eliminar con confirmación adicional
-    document.querySelector('.btn-danger-sobre')?.addEventListener('click', function(e) {
-        // La confirmación ya está en la función eliminarPropiedad
-        // Este listener es solo para evitar doble confirmación
-    });
 </script>
 
 <style>
-    /* Estilos adicionales */
     .card-plain {
         background: white;
         border-radius: 8px;
@@ -315,67 +252,31 @@
         background: #d4edda;
         color: #155724;
     }
-    .badge-danger-flat {
-        background: #f8d7da;
-        color: #721c24;
-    }
-    .badge-warning-flat {
-        background: #fff3cd;
-        color: #856404;
-    }
     .badge-info-flat {
         background: #d1ecf1;
         color: #0c5460;
-    }
-    .badge-primary-flat {
-        background: #cce5ff;
-        color: #004085;
     }
     .badge-secondary-flat {
         background: #e2e3e5;
         color: #383d41;
     }
-    .btn-primary-sobre {
-        background-color: #e25c0c;
-        border-color: #e25c0c;
-        color: white;
-    }
-    .btn-primary-sobre:hover {
-        background-color: #c44e0a;
-        border-color: #c44e0a;
-        color: white;
-    }
-    .btn-danger-sobre {
-        background-color: #dc3545;
-        border-color: #dc3545;
-        color: white;
-    }
-    .btn-danger-sobre:hover {
-        background-color: #c82333;
-        border-color: #bd2130;
-        color: white;
-    }
-    .btn-outline-sobre {
-        border-color: #e25c0c;
+    .product-price {
         color: #e25c0c;
     }
-    .btn-outline-sobre:hover {
+    .carousel {
+        position: relative;
+    }
+    .carousel-indicators {
+        position: relative;
+        margin-top: 10px;
+        margin-bottom: 0;
+    }
+    .carousel-indicators button {
+        background-color: #6c757d;
+        border: none;
+    }
+    .carousel-indicators .active {
         background-color: #e25c0c;
-        color: white;
-    }
-    .text-orange-sobre {
-        color: #e25c0c;
-    }
-    .sidebar {
-        background: #ffffff;
-        border-right: 1px solid #e9ecef;
-        min-height: 100vh;
-        width: 240px;
-    }
-    .top-bar {
-        background: white;
-        padding: 12px 24px;
-        border-bottom: 1px solid #e9ecef;
     }
     .nav-link-custom {
         color: #1a2c3e;
@@ -399,24 +300,37 @@
     .nav-link-custom.active i {
         color: white;
     }
-    .product-price {
+    .sidebar {
+        background: #ffffff;
+        border-right: 1px solid #e9ecef;
+        min-height: 100vh;
+        width: 240px;
+    }
+    .top-bar {
+        background: white;
+        padding: 12px 24px;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .btn-primary-sobre {
+        background-color: #e25c0c;
+        border-color: #e25c0c;
+        color: white;
+    }
+    .btn-primary-sobre:hover {
+        background-color: #c44e0a;
+        border-color: #c44e0a;
+        color: white;
+    }
+    .btn-outline-sobre {
+        border-color: #e25c0c;
         color: #e25c0c;
     }
-    .img-fluid {
-        max-width: 100%;
-        height: auto;
+    .btn-outline-sobre:hover {
+        background-color: #e25c0c;
+        color: white;
     }
-    .rounded {
-        border-radius: 8px;
-    }
-    .main-image {
-        transition: opacity 0.3s ease;
-    }
-    .col-3 img {
-        transition: all 0.2s ease;
-    }
-    .col-3 img:hover {
-        transform: scale(1.05);
+    .text-orange-sobre {
+        color: #e25c0c;
     }
 </style>
 
